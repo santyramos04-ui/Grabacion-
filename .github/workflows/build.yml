@@ -4,9 +4,14 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.OWL_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -14,9 +19,29 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      - name: Compilar APK debug
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Preparar clave de firma
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.OWL_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/owl.keystore"
+          echo "OWL_KEYSTORE_PATH=$RUNNER_TEMP/owl.keystore" >> "$GITHUB_ENV"
+      - name: Compilar APK
+        env:
+          OWL_KEYSTORE_PASSWORD: ${{ secrets.OWL_KEYSTORE_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Renombrar APK
+        run: cp app/build/outputs/apk/release/app-release.apk owl-${{ github.run_number }}.apk
       - uses: actions/upload-artifact@v4
         with:
           name: owl-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: owl-${{ github.run_number }}.apk
+      # Solo se publica una versión (que la app detecta como actualización) si el APK lleva la
+      # clave fija; firmado con otra clave no se podría instalar encima del anterior.
+      - name: Publicar versión
+        if: env.HAS_KEYSTORE == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ccr-6f0fa9e9-nstuda')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: owl 1.${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: owl-${{ github.run_number }}.apk
+          make_latest: true

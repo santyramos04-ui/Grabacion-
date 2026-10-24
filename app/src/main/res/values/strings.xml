@@ -19,4 +19,63 @@
     <string name="status_timelapse">● Timelapse: %1$d fotos (cada %2$d s)</string>
     <string name="permissions_needed">Se necesita permiso de cámara para usar la app</string>
     <string name="saved_to">Los archivos se guardan en Movies/Owl y Pictures/Owl</string>
+
+    <!-- Navegación -->
+    <string name="nav_camera">Cámara</string>
+    <string name="nav_gallery">Galería</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Galería -->
+    <string name="tab_videos">Videos</string>
+    <string name="tab_timelapses">Timelapses</string>
+    <string name="empty_videos">Aún no hay videos. Graba uno desde la pestaña Cámara.</string>
+    <string name="empty_timelapses">Aún no hay timelapses. Inicia uno desde la pestaña Cámara.</string>
+    <string name="session_photos">%d fotos</string>
+    <string name="media_permission">Permite el acceso a fotos y videos para ver la galería</string>
+    <string name="grant">Permitir</string>
+
+    <!-- Acciones -->
+    <string name="action_edit">Editar</string>
+    <string name="action_share">Compartir</string>
+    <string name="action_share_all">Compartir todas</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_delete_session">Eliminar timelapse</string>
+    <string name="action_make_video">Crear video</string>
+    <string name="share_with">Compartir con</string>
+    <string name="confirm_delete">¿Eliminar este archivo?</string>
+    <string name="confirm_delete_session">¿Eliminar las %d fotos de este timelapse?</string>
+    <string name="deleted">Eliminado</string>
+    <string name="cancel">Cancelar</string>
+
+    <!-- Editor -->
+    <string name="editor_title">Edición rápida</string>
+    <string name="trim">Recortar</string>
+    <string name="remove_audio">Quitar audio</string>
+    <string name="rotate">Rotar 90°</string>
+    <string name="rotation_value">Rotación: %d°</string>
+    <string name="save_copy">Guardar como copia</string>
+    <string name="exporting">Exportando… %d%%</string>
+    <string name="export_done">Guardado en Movies/Owl</string>
+    <string name="export_failed">No se pudo exportar: %s</string>
+    <string name="make_video_title">Crear video del timelapse</string>
+    <string name="fps_label">Fotos por segundo: %d</string>
+    <string name="make_video_summary">%1$d fotos → video de %2$.1f s</string>
+    <string name="create">Crear</string>
+
+    <!-- Ajustes y actualizaciones -->
+    <string name="version_label">Versión %s</string>
+    <string name="check_updates">Buscar actualizaciones</string>
+    <string name="auto_updates">Buscar actualizaciones al abrir la app</string>
+    <string name="checking_updates">Buscando actualizaciones…</string>
+    <string name="up_to_date">Tienes la última versión</string>
+    <string name="update_available_title">Nueva versión disponible</string>
+    <string name="update_available">owl %1$s está disponible (tienes la %2$s).\n\n%3$s</string>
+    <string name="update_now">Actualizar</string>
+    <string name="later">Más tarde</string>
+    <string name="downloading_update">Descargando actualización… %d%%</string>
+    <string name="update_failed">No se pudo actualizar: %s</string>
+    <string name="allow_installs">Permite que owl instale actualizaciones y vuelve a intentarlo</string>
+    <string name="battery_settings">Evitar que el sistema cierre owl</string>
+    <string name="battery_summary">Desactiva la optimización de batería para que las grabaciones largas no se detengan.</string>
+    <string name="open_github">Ver proyecto en GitHub</string>
 </resources>
