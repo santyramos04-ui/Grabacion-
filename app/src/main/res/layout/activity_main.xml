@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:background="#000000">
+
+            <androidx.camera.view.PreviewView
+                android:id="@+id/preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/status_idle"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <RadioGroup
+            android:id="@+id/modeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/modeVideo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="@string/mode_video" />
+
+            <RadioButton
+                android:id="@+id/modeTimelapse"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mode_timelapse" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/videoOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/quality" />
+
+            <RadioGroup
+                android:id="@+id/qualityGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/qualityHd"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="720p" />
+
+                <RadioButton
+                    android:id="@+id/qualityFhd"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="1080p" />
+
+                <RadioButton
+                    android:id="@+id/qualityUhd"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="4K" />
+            </RadioGroup>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/audioSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/record_audio" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/timelapseOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/interval_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/intervalInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="5" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/max_photos_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/maxPhotosInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="0" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/frontSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/front_camera" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/startStopButton"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/start"
+            android:textSize="18sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/background_hint" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/saved_to"
+            android:textStyle="italic" />
+    </LinearLayout>
+</ScrollView>

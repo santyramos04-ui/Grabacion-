@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Grabación</string>
+    <string name="mode_video">Video</string>
+    <string name="mode_timelapse">Timelapse (fotos)</string>
+    <string name="interval_hint">Intervalo entre fotos (segundos)</string>
+    <string name="max_photos_hint">Máximo de fotos (0 = sin límite)</string>
+    <string name="front_camera">Cámara frontal</string>
+    <string name="record_audio">Grabar audio</string>
+    <string name="quality">Calidad de video</string>
+    <string name="start">Iniciar</string>
+    <string name="stop">Detener</string>
+    <string name="background_hint">Puedes salir de la app, bloquear la pantalla o usar otras apps: la cámara sigue trabajando. Detén la captura desde aquí o desde la notificación.</string>
+    <string name="channel_name">Captura en segundo plano</string>
+    <string name="notif_video">Grabando video</string>
+    <string name="notif_timelapse">Timelapse en curso</string>
+    <string name="notif_timelapse_text">%1$d fotos · cada %2$d s</string>
+    <string name="status_idle">Listo</string>
+    <string name="status_video">● Grabando video en segundo plano</string>
+    <string name="status_timelapse">● Timelapse: %1$d fotos (cada %2$d s)</string>
+    <string name="permissions_needed">Se necesita permiso de cámara para usar la app</string>
+    <string name="saved_to">Los archivos se guardan en Movies/Grabacion y Pictures/Grabacion</string>
+</resources>
