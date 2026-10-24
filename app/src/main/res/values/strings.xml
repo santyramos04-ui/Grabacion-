@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Grabación</string>
+    <string name="app_name">owl</string>
     <string name="mode_video">Video</string>
     <string name="mode_timelapse">Timelapse (fotos)</string>
     <string name="interval_hint">Intervalo entre fotos (segundos)</string>
@@ -18,5 +18,5 @@
     <string name="status_video">● Grabando video en segundo plano</string>
     <string name="status_timelapse">● Timelapse: %1$d fotos (cada %2$d s)</string>
     <string name="permissions_needed">Se necesita permiso de cámara para usar la app</string>
-    <string name="saved_to">Los archivos se guardan en Movies/Grabacion y Pictures/Grabacion</string>
+    <string name="saved_to">Los archivos se guardan en Movies/Owl y Pictures/Owl</string>
 </resources>

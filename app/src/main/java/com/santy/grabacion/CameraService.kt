@@ -59,8 +59,8 @@ class CameraService : LifecycleService() {
         const val EXTRA_INTERVAL = "interval"
         const val EXTRA_MAX_PHOTOS = "max_photos"
 
-        private const val VIDEO_FOLDER = "Movies/Grabacion"
-        private const val PHOTO_FOLDER = "Pictures/Grabacion"
+        private const val VIDEO_FOLDER = "Movies/Owl"
+        private const val PHOTO_FOLDER = "Pictures/Owl"
 
         private val _status = MutableStateFlow<CaptureStatus>(CaptureStatus.Idle)
         val status: StateFlow<CaptureStatus> = _status
@@ -307,7 +307,7 @@ class CameraService : LifecycleService() {
     private fun acquireWakeLock() {
         // Mantiene la CPU activa con la pantalla apagada para que el timelapse no se detenga.
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Grabacion::Captura").apply {
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Owl::Captura").apply {
             setReferenceCounted(false)
             acquire()
         }

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Grabacion"
+rootProject.name = "Owl"
 include(":app")

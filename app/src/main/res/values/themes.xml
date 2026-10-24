@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.Grabacion" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Owl" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">#D32F2F</item>
         <item name="colorOnPrimary">#FFFFFF</item>
     </style>
