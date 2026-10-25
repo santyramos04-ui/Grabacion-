@@ -62,7 +62,10 @@ class StatsFragment : CollectionTab(R.layout.fragment_stats) {
         card(
             getString(R.string.stats_accumulation),
             getString(if (completeness >= 0.9) R.string.stats_accumulation_stable else R.string.stats_accumulation_rising)
-        ).addView(LineChartView(requireContext()).apply { setData(curve, stats.chao1.takeIf { stats.species > 0 }) })
+        ).addView(LineChartView(requireContext()).apply {
+            setData(curve, stats.chao1.takeIf { stats.species > 0 })
+            contentDescription = getString(R.string.chart_accumulation_summary, stats.species, stats.total, fmt(stats.chao1, 1))
+        })
 
         card(getString(R.string.stats_by_group)).addView(BarListView(requireContext()).apply {
             setBars(stats.byGroup().map {
@@ -78,8 +81,11 @@ class StatsFragment : CollectionTab(R.layout.fragment_stats) {
         if (months.isNotEmpty()) {
             val parse = SimpleDateFormat("yyyy-MM", Locale.US)
             val label = SimpleDateFormat("MMM yy", Locale.getDefault())
+            val labels = months.map { m -> runCatching { label.format(parse.parse(m.label)!!) }.getOrDefault(m.label) }
+            val busiest = months.indices.maxBy { months[it].value }
             card(getString(R.string.stats_by_month)).addView(ColumnChartView(requireContext()).apply {
-                setData(months.map { it.value }, months.map { m -> runCatching { label.format(parse.parse(m.label)!!) }.getOrDefault(m.label) })
+                setData(months.map { it.value }, labels)
+                contentDescription = getString(R.string.chart_month_summary, months.size, labels[busiest], months[busiest].value)
             })
         }
 

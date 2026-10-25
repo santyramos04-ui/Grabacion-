@@ -117,6 +117,9 @@
     <string name="map_empty">Ningún espécimen tiene ubicación GPS todavía.</string>
     <string name="map_attribution">© colaboradores de OpenStreetMap</string>
     <string name="filter_all">Todos</string>
+    <string name="photo_of">Foto de %s</string>
+    <string name="chart_accumulation_summary">Curva de acumulación: %1$d especies en %2$d registros; Chao1 estima %3$s especies.</string>
+    <string name="chart_month_summary">Registros en %1$d meses; el mes con más registros es %2$s, con %3$d.</string>
     <string name="section_place">Lugar de colecta</string>
     <string name="section_identification">Identificación</string>
     <string name="section_collection">Datos de colecta</string>

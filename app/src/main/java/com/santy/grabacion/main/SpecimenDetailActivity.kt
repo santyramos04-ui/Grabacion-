@@ -91,6 +91,7 @@ class SpecimenDetailActivity : AppCompatActivity() {
         val name = specimen.photo
         photo.visibility = if (name == null) View.GONE else View.VISIBLE
         if (name != null) Glide.with(this).load(SpecimenPhotos.file(this, name)).into(photo)
+        photo.contentDescription = getString(R.string.photo_of, specimen.scientificName)
 
         val description = SpecimenLocation.describe(specimen)
         findViewById<View>(R.id.locationSection).visibility = if (description == null) View.GONE else View.VISIBLE
@@ -131,5 +132,7 @@ class SpecimenDetailActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+            .getButton(android.content.DialogInterface.BUTTON_POSITIVE)
+            .setTextColor(com.google.android.material.color.MaterialColors.getColor(fields, com.google.android.material.R.attr.colorError))
     }
 }
