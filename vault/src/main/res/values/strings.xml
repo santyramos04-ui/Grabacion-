@@ -49,4 +49,33 @@
     <string name="open_github">Ver proyecto en GitHub</string>
     <!-- Vault -->
     <string name="close_vault">Cerrar vault</string>
+    <!-- Ajustes de grabación -->
+    <string name="duration">Duración de la grabación</string>
+    <string name="duration_unlimited">Sin límite</string>
+    <string name="duration_minutes">%d min</string>
+    <string name="duration_custom">Otra…</string>
+    <string name="duration_custom_title">Duración personalizada</string>
+    <string name="duration_custom_hint">Minutos (1 a 600)</string>
+    <string name="format">Formato</string>
+    <string name="format_sdr">MP4</string>
+    <string name="format_hdr">MP4 HDR</string>
+    <string name="format_hint">MP4 normal (H.264) funciona en todos los dispositivos. HDR (10 bits, HEVC) solo aparece si tu cámara lo admite.</string>
+    <string name="format_hint_no_hdr">Tu cámara no admite HDR: se graba en MP4 normal (H.264).</string>
+    <string name="frame_rate">Fotogramas por segundo</string>
+    <string name="frame_rate_auto">Auto</string>
+    <string name="frame_rate_value">%d fps</string>
+    <string name="bitrate">Tasa de bits</string>
+    <string name="bitrate_auto">Auto</string>
+    <string name="bitrate_high">Alta</string>
+    <string name="bitrate_medium">Media</string>
+    <string name="bitrate_low">Baja</string>
+    <string name="stabilization">Estabilización de video</string>
+    <string name="torch">Linterna durante la grabación</string>
+    <string name="not_supported">%s (no disponible en esta cámara)</string>
+    <string name="pause">Pausar</string>
+    <string name="resume">Reanudar</string>
+    <string name="status_paused">En pausa</string>
+    <string name="status_video_limit">● Grabando: %1$s de %2$s</string>
+    <string name="status_video_time">● Grabando: %s</string>
+    <string name="ok">Aceptar</string>
 </resources>

@@ -16,8 +16,10 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Range
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.DynamicRange
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -41,7 +43,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Servicio en primer plano que mantiene la cámara abierta aunque la app no esté visible.
- * Graba video o toma fotos de timelapse mientras el usuario sigue usando el teléfono.
+ * Graba video (con pausa, reanudación y límite de duración) o toma fotos de timelapse. Se
+ * controla solo a través de [RecordingController]; su estado real se publica en [status].
  */
 class CameraService : LifecycleService() {
 
@@ -50,26 +53,21 @@ class CameraService : LifecycleService() {
         private const val CHANNEL_ID = "captura"
         private const val NOTIFICATION_ID = 1
 
-        const val ACTION_START = "com.santy.grabacion.START"
-        const val ACTION_STOP = "com.santy.grabacion.STOP"
-        const val EXTRA_MODE = "mode"
-        const val EXTRA_FRONT = "front"
-        const val EXTRA_AUDIO = "audio"
-        const val EXTRA_QUALITY = "quality"
-        const val EXTRA_INTERVAL = "interval"
-        const val EXTRA_MAX_PHOTOS = "max_photos"
+        internal const val ACTION_START = "com.santy.grabacion.START"
+        internal const val ACTION_STOP = "com.santy.grabacion.STOP"
+        internal const val ACTION_PAUSE = "com.santy.grabacion.PAUSE"
+        internal const val ACTION_RESUME = "com.santy.grabacion.RESUME"
+        internal const val EXTRA_MODE = "mode"
+        internal const val EXTRA_ORIGIN = "origin"
+        internal const val EXTRA_SETTINGS = "settings"
+        internal const val EXTRA_INTERVAL = "interval"
+        internal const val EXTRA_MAX_PHOTOS = "max_photos"
 
         private const val VIDEO_FOLDER = "Movies/Owl"
         private const val PHOTO_FOLDER = "Pictures/Owl"
 
         private val _status = MutableStateFlow<CaptureStatus>(CaptureStatus.Idle)
         val status: StateFlow<CaptureStatus> = _status
-
-        fun qualityFromName(name: String?): Quality = when (name) {
-            "HD" -> Quality.HD
-            "UHD" -> Quality.UHD
-            else -> Quality.FHD
-        }
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -78,6 +76,8 @@ class CameraService : LifecycleService() {
     private var imageCapture: ImageCapture? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
+    private var origin = CaptureOrigin.VAULT
+    private var settings = RecordingSettings()
     private var startedAt = 0L
     private var intervalSeconds = 5
     private var maxPhotos = 0
@@ -95,25 +95,26 @@ class CameraService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
         when (intent?.action) {
             ACTION_START -> if (_status.value == CaptureStatus.Idle) start(intent)
+            ACTION_PAUSE -> pause()
+            ACTION_RESUME -> resume()
             ACTION_STOP -> stopCapture()
-            else -> stopSelf()
+            else -> if (_status.value == CaptureStatus.Idle) stopSelf()
         }
         return START_NOT_STICKY
     }
 
     private fun start(intent: Intent) {
-        val mode = CaptureMode.valueOf(intent.getStringExtra(EXTRA_MODE) ?: CaptureMode.VIDEO.name)
-        val front = intent.getBooleanExtra(EXTRA_FRONT, false)
-        val audio = mode == CaptureMode.VIDEO &&
-            intent.getBooleanExtra(EXTRA_AUDIO, true) &&
-            hasPermission(Manifest.permission.RECORD_AUDIO)
+        val mode = runCatching { CaptureMode.valueOf(intent.getStringExtra(EXTRA_MODE)!!) }.getOrDefault(CaptureMode.VIDEO)
+        origin = runCatching { CaptureOrigin.valueOf(intent.getStringExtra(EXTRA_ORIGIN)!!) }.getOrDefault(CaptureOrigin.VAULT)
+        settings = RecordingSettings.fromBundle(intent.getBundleExtra(EXTRA_SETTINGS))
+        val audio = mode == CaptureMode.VIDEO && settings.audio && hasPermission(Manifest.permission.RECORD_AUDIO)
         intervalSeconds = intent.getIntExtra(EXTRA_INTERVAL, 5).coerceAtLeast(1)
         maxPhotos = intent.getIntExtra(EXTRA_MAX_PHOTOS, 0).coerceAtLeast(0)
         startedAt = System.currentTimeMillis()
         photoCount = 0
 
         _status.value = if (mode == CaptureMode.VIDEO) {
-            CaptureStatus.Recording(startedAt)
+            CaptureStatus.Recording(startedAt, origin, limitMs = settings.durationLimitMs)
         } else {
             CaptureStatus.Timelapse(startedAt, 0, intervalSeconds)
         }
@@ -129,7 +130,7 @@ class CameraService : LifecycleService() {
         }
         acquireWakeLock()
 
-        val selector = if (front) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+        val selector = if (settings.frontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
         val providerFuture = ProcessCameraProvider.getInstance(this)
         providerFuture.addListener({
             try {
@@ -137,9 +138,7 @@ class CameraService : LifecycleService() {
                 cameraProvider = provider
                 provider.unbindAll()
                 when (mode) {
-                    CaptureMode.VIDEO -> startVideo(
-                        provider, selector, audio, qualityFromName(intent.getStringExtra(EXTRA_QUALITY))
-                    )
+                    CaptureMode.VIDEO -> startVideo(provider, selector, audio)
                     CaptureMode.TIMELAPSE -> startTimelapse(provider, selector)
                 }
             } catch (e: Exception) {
@@ -149,40 +148,94 @@ class CameraService : LifecycleService() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    /**
+     * Configura el video con lo que la cámara admite de verdad. Si una combinación avanzada
+     * (HDR, fps, estabilización) no se puede usar, vuelve a la configuración básica.
+     */
+    private fun buildVideoCapture(info: androidx.camera.core.CameraInfo?, advanced: Boolean): VideoCapture<Recorder> {
+        val recorderBuilder = Recorder.Builder().setQualitySelector(
+            QualitySelector.from(settings.quality.toCameraX(), FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
+        )
+        if (advanced) settings.targetBitrate()?.let { recorderBuilder.setTargetVideoEncodingBitRate(it) }
+        val builder = VideoCapture.Builder(recorderBuilder.build())
+        if (advanced && info != null) {
+            val capabilities = Recorder.getVideoCapabilities(info)
+            if (settings.format == VideoFormat.MP4_HDR && DynamicRange.HLG_10_BIT in capabilities.supportedDynamicRanges) {
+                builder.setDynamicRange(DynamicRange.HLG_10_BIT)
+            }
+            if (settings.frameRate > 0 &&
+                info.supportedFrameRateRanges.any { it.lower == settings.frameRate && it.upper == settings.frameRate }
+            ) {
+                builder.setTargetFrameRate(Range(settings.frameRate, settings.frameRate))
+            }
+            if (settings.stabilization && capabilities.isStabilizationSupported) {
+                builder.setVideoStabilizationEnabled(true)
+            }
+        }
+        return builder.build()
+    }
+
     @SuppressLint("MissingPermission")
-    private fun startVideo(provider: ProcessCameraProvider, selector: CameraSelector, audio: Boolean, quality: Quality) {
-        val recorder = Recorder.Builder()
-            .setQualitySelector(
-                QualitySelector.from(quality, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
-            )
-            .build()
-        val videoCapture = VideoCapture.withOutput(recorder)
-        provider.bindToLifecycle(this, selector, videoCapture)
+    private fun startVideo(provider: ProcessCameraProvider, selector: CameraSelector, audio: Boolean) {
+        val info = selector.filter(provider.availableCameraInfos).firstOrNull()
+        var videoCapture = buildVideoCapture(info, advanced = true)
+        val camera = try {
+            provider.bindToLifecycle(this, selector, videoCapture)
+        } catch (e: Exception) {
+            Log.w(TAG, "Configuración avanzada no admitida; se usa la básica", e)
+            provider.unbindAll()
+            videoCapture = buildVideoCapture(info, advanced = false)
+            provider.bindToLifecycle(this, selector, videoCapture)
+        }
+        if (settings.torch && !settings.frontCamera && camera.cameraInfo.hasFlashUnit()) {
+            camera.cameraControl.enableTorch(true)
+        }
 
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, "VID_${timestamp()}")
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.MediaColumns.RELATIVE_PATH, VIDEO_FOLDER)
-            }
+            put(MediaStore.MediaColumns.RELATIVE_PATH, VIDEO_FOLDER)
         }
         val output = MediaStoreOutputOptions.Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
             .setContentValues(values)
             .build()
 
-        var pending = recorder.prepareRecording(this, output)
+        var pending = videoCapture.output.prepareRecording(this, output)
         if (audio) pending = pending.withAudioEnabled()
-        recording = pending.start(ContextCompat.getMainExecutor(this)) { event ->
-            if (event is VideoRecordEvent.Finalize) {
+        recording = pending.start(ContextCompat.getMainExecutor(this)) { event -> onVideoEvent(event) }
+    }
+
+    /** El estado (pausa, tiempo grabado, fin) se toma de los eventos que confirma CameraX. */
+    private fun onVideoEvent(event: VideoRecordEvent) {
+        val current = _status.value as? CaptureStatus.Recording
+        val recordedMs = event.recordingStats.recordedDurationNanos / 1_000_000
+        when (event) {
+            is VideoRecordEvent.Pause -> current?.let {
+                _status.value = it.copy(paused = true, recordedMs = recordedMs)
+                updateNotification()
+            }
+            is VideoRecordEvent.Resume -> current?.let {
+                _status.value = it.copy(paused = false, recordedMs = recordedMs)
+                updateNotification()
+            }
+            is VideoRecordEvent.Status -> current?.let {
+                _status.value = it.copy(recordedMs = recordedMs)
+                // La duración configurada cuenta solo el tiempo realmente grabado.
+                if (it.limitMs > 0 && recordedMs >= it.limitMs) recording?.stop()
+            }
+            is VideoRecordEvent.Finalize -> {
                 recording = null
-                if (event.hasError() && event.error != VideoRecordEvent.Finalize.ERROR_SOURCE_INACTIVE) {
+                if (event.hasError() && event.error != VideoRecordEvent.Finalize.ERROR_SOURCE_INACTIVE &&
+                    event.error != VideoRecordEvent.Finalize.ERROR_DURATION_LIMIT_REACHED
+                ) {
                     Log.e(TAG, "Error de grabación: ${event.error}", event.cause)
-                    toast("La grabación terminó con error (${event.error})")
+                    notifyUser("La grabación terminó con error (${event.error})")
                 } else {
-                    toast("Video guardado en $VIDEO_FOLDER")
+                    notifyUser("Video guardado en $VIDEO_FOLDER")
                 }
                 endSession()
             }
+            else -> Unit
         }
     }
 
@@ -201,9 +254,7 @@ class CameraService : LifecycleService() {
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${timestamp()}")
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.MediaColumns.RELATIVE_PATH, sessionFolder)
-            }
+            put(MediaStore.MediaColumns.RELATIVE_PATH, sessionFolder)
         }
         val options = ImageCapture.OutputFileOptions.Builder(
             contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
@@ -212,7 +263,8 @@ class CameraService : LifecycleService() {
             override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                 if (imageCapture == null) return
                 photoCount++
-                _status.value = CaptureStatus.Timelapse(startedAt, photoCount, intervalSeconds)
+                val paused = (_status.value as? CaptureStatus.Timelapse)?.paused ?: false
+                _status.value = CaptureStatus.Timelapse(startedAt, photoCount, intervalSeconds, paused)
                 updateNotification()
                 if (maxPhotos in 1..photoCount) stopCapture()
             }
@@ -223,6 +275,31 @@ class CameraService : LifecycleService() {
         })
     }
 
+    private fun pause() {
+        when (val current = _status.value) {
+            // El estado cambia cuando CameraX confirma la pausa (evento Pause).
+            is CaptureStatus.Recording -> if (!current.paused) recording?.pause()
+            is CaptureStatus.Timelapse -> if (!current.paused) {
+                handler.removeCallbacks(timelapseTick)
+                _status.value = current.copy(paused = true)
+                updateNotification()
+            }
+            CaptureStatus.Idle -> Unit
+        }
+    }
+
+    private fun resume() {
+        when (val current = _status.value) {
+            is CaptureStatus.Recording -> if (current.paused) recording?.resume()
+            is CaptureStatus.Timelapse -> if (current.paused) {
+                _status.value = current.copy(paused = false)
+                handler.postDelayed(timelapseTick, intervalSeconds * 1000L)
+                updateNotification()
+            }
+            CaptureStatus.Idle -> Unit
+        }
+    }
+
     private fun stopCapture() {
         handler.removeCallbacks(timelapseTick)
         val active = recording
@@ -230,13 +307,13 @@ class CameraService : LifecycleService() {
             // endSession() se llama cuando llega el evento Finalize y el archivo queda cerrado.
             active.stop()
         } else {
-            if (imageCapture != null && photoCount > 0) toast("$photoCount fotos guardadas en $sessionFolder")
+            if (imageCapture != null && photoCount > 0) notifyUser("$photoCount fotos guardadas en $sessionFolder")
             endSession()
         }
     }
 
     private fun fail(message: String) {
-        toast(message)
+        notifyUser(message)
         endSession()
     }
 
@@ -260,39 +337,53 @@ class CameraService : LifecycleService() {
         super.onDestroy()
     }
 
+    /**
+     * Notificación discreta: un punto como icono, el texto «Procesando» y los botones para pausar
+     * o reanudar y para finalizar. No aparece en la pantalla de bloqueo ni hace sonido.
+     */
     private fun buildNotification(): android.app.Notification {
         val manager = getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-            manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, getString(R.string.channel_name), NotificationManager.IMPORTANCE_LOW)
-            )
-        }
+        // Crear el canal con el mismo id solo actualiza su nombre; conserva los ajustes del usuario.
+        manager.createNotificationChannel(
+            NotificationChannel(CHANNEL_ID, getString(R.string.channel_name), NotificationManager.IMPORTANCE_LOW)
+        )
         val openApp = PendingIntent.getActivity(
             this, 0,
             (packageManager.getLaunchIntentForPackage(packageName) ?: Intent()),
             PendingIntent.FLAG_IMMUTABLE
         )
-        val stop = PendingIntent.getService(
-            this, 1,
-            Intent(this, CameraService::class.java).setAction(ACTION_STOP),
-            PendingIntent.FLAG_IMMUTABLE
+        fun service(requestCode: Int, action: String) = PendingIntent.getService(
+            this, requestCode, Intent(this, CameraService::class.java).setAction(action), PendingIntent.FLAG_IMMUTABLE
         )
+        val current = _status.value
+        val paused = current.isPaused
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.ic_dot)
+            .setContentTitle(getString(R.string.notif_processing))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setContentIntent(openApp)
-            .addAction(0, getString(R.string.stop), stop)
-            .setWhen(startedAt)
-            .setUsesChronometer(true)
-            .setShowWhen(true)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .addAction(
+                0,
+                getString(if (paused) R.string.action_resume else R.string.action_pause),
+                service(2, if (paused) ACTION_RESUME else ACTION_PAUSE),
+            )
+            .addAction(0, getString(R.string.action_finish), service(1, ACTION_STOP))
 
-        when (val s = _status.value) {
-            is CaptureStatus.Timelapse -> builder
-                .setContentTitle(getString(R.string.notif_timelapse))
-                .setContentText(getString(R.string.notif_timelapse_text, s.photos, s.intervalSeconds))
-            else -> builder.setContentTitle(getString(R.string.notif_video))
+        if (paused) {
+            builder.setContentText(getString(R.string.notif_paused)).setShowWhen(false).setUsesChronometer(false)
+        } else {
+            val recordedMs = (current as? CaptureStatus.Recording)?.recordedMs ?: 0L
+            val since = if (current is CaptureStatus.Recording) System.currentTimeMillis() - recordedMs else startedAt
+            builder.setWhen(since).setUsesChronometer(true).setShowWhen(true)
+        }
+        if (current is CaptureStatus.Timelapse) {
+            builder.setContentText(resources.getQuantityString(R.plurals.notif_photos, current.photos, current.photos))
         }
         return builder.build()
     }
@@ -301,11 +392,12 @@ class CameraService : LifecycleService() {
         if (!hasPermission(Manifest.permission.POST_NOTIFICATIONS) &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
         ) return
+        if (_status.value == CaptureStatus.Idle) return
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification())
     }
 
     private fun acquireWakeLock() {
-        // Mantiene la CPU activa con la pantalla apagada para que el timelapse no se detenga.
+        // Mantiene la CPU activa con la pantalla apagada para que la captura no se detenga.
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Owl::Captura").apply {
             setReferenceCounted(false)
@@ -321,7 +413,11 @@ class CameraService : LifecycleService() {
     private fun hasPermission(permission: String) =
         ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 
-    private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    /** Los avisos solo se muestran en capturas del vault; las iniciadas con el gesto son silenciosas. */
+    private fun notifyUser(message: String) {
+        if (origin == CaptureOrigin.VAULT) Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        else Log.i(TAG, message)
+    }
 
     private fun timestamp(): String =
         SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(Date())

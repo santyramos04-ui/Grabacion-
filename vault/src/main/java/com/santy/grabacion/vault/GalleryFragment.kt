@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.santy.grabacion.core.formatDuration
-import com.santy.grabacion.recorder.CameraService
+import com.santy.grabacion.recorder.RecordingController
 import kotlinx.coroutines.launch
 
 class GalleryFragment : Fragment(R.layout.fragment_gallery) {
@@ -52,7 +52,7 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
         // Al terminar una grabación aparece el archivo nuevo sin tener que salir de la galería.
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                CameraService.status.collect { reload() }
+                RecordingController.status.collect { reload() }
             }
         }
     }

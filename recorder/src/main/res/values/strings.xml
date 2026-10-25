@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="channel_name">Captura en segundo plano</string>
-    <string name="notif_video">Grabando video</string>
-    <string name="notif_timelapse">Timelapse en curso</string>
-    <string name="notif_timelapse_text">%1$d fotos · cada %2$d s</string>
+    <!-- Notificación de captura: deliberadamente neutra. -->
+    <string name="channel_name">Procesamiento</string>
+    <string name="notif_processing">Procesando</string>
+    <string name="notif_paused">En pausa</string>
+    <string name="action_pause">Pausar</string>
+    <string name="action_resume">Reanudar</string>
+    <string name="action_finish">Finalizar</string>
+    <plurals name="notif_photos">
+        <item quantity="one">%d foto</item>
+        <item quantity="other">%d fotos</item>
+    </plurals>
 </resources>
