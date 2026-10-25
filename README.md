@@ -20,7 +20,10 @@ App Android con dos módulos:
     Pielou, curva de acumulación de especies, registros por grupo, especie, mes, altitud y
     localidad, y distribución geográfica.
   - **Exportar**: CSV con columnas Darwin Core (Excel, GBIF), GeoJSON (QGIS), KML (Google
-    Earth) e imagen del mapa con leyenda; se comparten o se guardan en el teléfono.
+    Earth) e imagen del mapa con leyenda. Los archivos se guardan en `Descargas/OWL` (la
+    imagen en `Imágenes/OWL`) y después se pueden compartir o abrir.
+  - Barra inferior con Colección, Mapa, **Añadir** (botón central), Estadísticas y Ajustes.
+    El inventario se ve como lista o como galería.
   - Al elegir una foto de la galería se leen su fecha y coordenadas (EXIF). Las fotos se guardan en el almacenamiento privado de la app,
   fuera de la galería del teléfono.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su

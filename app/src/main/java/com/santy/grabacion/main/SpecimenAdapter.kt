@@ -1,5 +1,6 @@
 package com.santy.grabacion.main
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,20 +13,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.santy.grabacion.R
 
+/** Especímenes del inventario como lista (tarjetas) o como galería (cuadros con la foto grande). */
 class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
     ListAdapter<Specimen, SpecimenAdapter.Holder>(Diff) {
+
+    var grid = false
+        @SuppressLint("NotifyDataSetChanged")
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyDataSetChanged()
+        }
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val thumb: ImageView = view.findViewById(R.id.thumb)
         val code: TextView = view.findViewById(R.id.code)
-        val group: TextView = view.findViewById(R.id.group)
+        val group: TextView? = view.findViewById(R.id.group)
         val date: TextView = view.findViewById(R.id.date)
         val scientific: TextView = view.findViewById(R.id.scientificName)
         val subtitle: TextView = view.findViewById(R.id.subtitle)
     }
 
+    override fun getItemViewType(position: Int) = if (grid) VIEW_GRID else VIEW_LIST
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_specimen, parent, false)
+        val layout = if (viewType == VIEW_GRID) R.layout.item_specimen_grid else R.layout.item_specimen
+        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
         return Holder(view).also { holder ->
             view.setOnClickListener {
                 val position = holder.bindingAdapterPosition
@@ -41,7 +54,7 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
         holder.code.background = ContextCompat.getDrawable(context, R.drawable.bg_code)?.mutate()?.apply {
             setTint(GroupColors.colorFor(specimen.group))
         }
-        holder.group.text = specimen.group
+        holder.group?.text = specimen.group
         holder.date.text = specimen.collectedOn
         holder.scientific.text = specimen.scientificName
         val place = if (specimen.hasLocation) "📍 ${specimen.locality}".trimEnd() else specimen.locality
@@ -61,5 +74,10 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
     private object Diff : DiffUtil.ItemCallback<Specimen>() {
         override fun areItemsTheSame(a: Specimen, b: Specimen) = a.id == b.id
         override fun areContentsTheSame(a: Specimen, b: Specimen) = a == b
+    }
+
+    private companion object {
+        const val VIEW_LIST = 0
+        const val VIEW_GRID = 1
     }
 }

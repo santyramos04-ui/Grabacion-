@@ -2,70 +2,56 @@ package com.santy.grabacion.main
 
 import android.graphics.Bitmap
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.santy.grabacion.R
 import kotlinx.coroutines.launch
 
 /**
- * Diálogo de exportación compartido por el inventario y el mapa. Debe crearse como propiedad
- * de la actividad (registra los selectores de archivo antes de onStart).
+ * Exportación compartida por el inventario, el mapa y las estadísticas: el archivo siempre se
+ * guarda en el teléfono y después se ofrece compartirlo o abrirlo.
  */
 class ExportController(
-    private val activity: AppCompatActivity,
+    private val fragment: Fragment,
     private val specimens: suspend () -> List<Specimen>,
     /** Captura del mapa, si la pantalla tiene uno. */
     private val mapImage: (() -> Bitmap?)? = null,
 ) {
-    private val saveLaunchers = CollectionExport.Format.entries.associateWith { format ->
-        activity.registerForActivityResult(ActivityResultContracts.CreateDocument(format.mimeType)) { uri ->
-            if (uri == null) return@registerForActivityResult
-            activity.lifecycleScope.launch {
-                try {
-                    CollectionExport.saveTo(activity, uri, format, specimens())
-                    Toast.makeText(activity, R.string.export_saved, Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(activity, activity.getString(R.string.export_failed, e.message), Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
     fun show() {
+        val context = fragment.requireContext()
         val formats = CollectionExport.Format.entries
-        val labels = formats.map { activity.getString(it.label) }.toMutableList()
-        if (mapImage != null) labels += activity.getString(R.string.export_map_image)
-        MaterialAlertDialogBuilder(activity)
+        val labels = formats.map { context.getString(it.label) }.toMutableList()
+        if (mapImage != null) labels += context.getString(R.string.export_map_image)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.export_title)
             .setItems(labels.toTypedArray()) { _, which ->
-                if (which >= formats.size) shareMapImage() else chooseAction(formats[which])
+                if (which >= formats.size) export { CollectionExport.saveImage(context, mapImage?.invoke() ?: error("Mapa no disponible")) }
+                else export { CollectionExport.save(context, formats[which], specimens()) }
             }
             .show()
     }
 
-    private fun chooseAction(format: CollectionExport.Format) {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(format.label)
-            .setItems(arrayOf(activity.getString(R.string.action_share), activity.getString(R.string.export_save_device))) { _, which ->
-                if (which == 0) {
-                    activity.lifecycleScope.launch {
-                        try {
-                            CollectionExport.share(activity, format, specimens())
-                        } catch (e: Exception) {
-                            Toast.makeText(activity, activity.getString(R.string.export_failed, e.message), Toast.LENGTH_LONG).show()
-                        }
+    private fun export(block: suspend () -> CollectionExport.Saved) {
+        val context = fragment.requireContext()
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val saved = try {
+                block()
+            } catch (e: Exception) {
+                Toast.makeText(context, context.getString(R.string.export_failed, e.message), Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.export_saved)
+                .setMessage(context.getString(R.string.export_saved_message, saved.name, saved.folder.replace("Download", "Descargas").replace("Pictures", "Imágenes")))
+                .setPositiveButton(R.string.action_share) { _, _ -> CollectionExport.share(context, saved) }
+                .setNeutralButton(R.string.export_open) { _, _ ->
+                    if (!CollectionExport.open(context, saved)) {
+                        Toast.makeText(context, R.string.export_no_app, Toast.LENGTH_LONG).show()
                     }
-                } else {
-                    saveLaunchers.getValue(format).launch(CollectionExport.fileName(format))
                 }
-            }
-            .show()
-    }
-
-    private fun shareMapImage() {
-        val bitmap = mapImage?.invoke() ?: return
-        activity.lifecycleScope.launch { CollectionExport.shareImage(activity, bitmap) }
+                .setNegativeButton(R.string.done, null)
+                .show()
+        }
     }
 }

@@ -46,7 +46,7 @@
 
         <!-- Módulo principal: inventario de colección biológica. -->
         <activity
-            android:name=".main.InventoryActivity"
+            android:name=".main.CollectionActivity"
             android:theme="@style/Theme.Owl.Collection"
             android:exported="false"
             android:launchMode="singleTop" />
@@ -59,18 +59,6 @@
             android:theme="@style/Theme.Owl.Collection"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".main.CollectionMapActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false" />
-        <activity
-            android:name=".main.StatsActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false" />
-        <activity
-            android:name=".main.MainSettingsActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false" />
 
         <!-- Vault: la app de cámara en segundo plano. -->
         <activity

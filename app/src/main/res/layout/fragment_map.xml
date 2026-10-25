@@ -53,6 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
             android:layout_margin="12dp"
+            android:gravity="end"
             android:orientation="vertical">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -63,14 +64,14 @@
                 android:contentDescription="@string/map_fit"
                 app:srcCompat="@drawable/ic_fit" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
                 android:id="@+id/myLocationButton"
-                style="?attr/floatingActionButtonSmallSecondaryStyle"
+                style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:contentDescription="@string/map_my_location"
-                app:srcCompat="@drawable/ic_my_location" />
+                android:text="@string/map_my_location"
+                app:icon="@drawable/ic_my_location" />
         </LinearLayout>
 
         <TextView

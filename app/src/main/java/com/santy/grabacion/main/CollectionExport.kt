@@ -1,16 +1,16 @@
 package com.santy.grabacion.main
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.core.content.FileProvider
+import android.provider.MediaStore
 import com.santy.grabacion.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -118,41 +118,71 @@ object CollectionExport {
 
     private fun xml(text: String) = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
-    /** Escribe el archivo en la caché y abre el menú de compartir (Drive, correo, WhatsApp…). */
-    suspend fun share(context: Context, format: Format, specimens: List<Specimen>) {
-        val file = withContext(Dispatchers.IO) {
-            exportFile(context, fileName(format)).apply { writeText(content(format, specimens)) }
+    /** Archivo exportado y guardado en el teléfono. */
+    data class Saved(val uri: Uri, val name: String, val folder: String, val mimeType: String)
+
+    const val DOWNLOADS_FOLDER = "Download/OWL"
+    const val PICTURES_FOLDER = "Pictures/OWL"
+
+    /** Guarda el archivo en Descargas/OWL, visible en la app Archivos del teléfono. */
+    suspend fun save(context: Context, format: Format, specimens: List<Specimen>): Saved = withContext(Dispatchers.IO) {
+        val name = fileName(format)
+        val text = content(format, specimens)
+        // Se usa el tipo que Android asocia a la extensión para que no renombre el archivo.
+        val mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(format.extension) ?: format.mimeType
+        insert(context, MediaStore.Downloads.EXTERNAL_CONTENT_URI, DOWNLOADS_FOLDER, name, mimeType) { out ->
+            out.bufferedWriter().use { it.write(text) }
         }
-        shareFile(context, file, format.mimeType)
     }
 
-    /** Guarda en el destino que el usuario eligió con el selector de archivos. */
-    suspend fun saveTo(context: Context, uri: Uri, format: Format, specimens: List<Specimen>) = withContext(Dispatchers.IO) {
-        context.contentResolver.openOutputStream(uri)!!.bufferedWriter().use { it.write(content(format, specimens)) }
-    }
-
-    suspend fun shareImage(context: Context, bitmap: Bitmap) {
-        val file = withContext(Dispatchers.IO) {
-            exportFile(context, "mapa_owl_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}.png").apply {
-                outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            }
+    /** Guarda la imagen del mapa en Imágenes/OWL, visible en la galería. */
+    suspend fun saveImage(context: Context, bitmap: Bitmap): Saved = withContext(Dispatchers.IO) {
+        val name = "mapa_owl_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}.png"
+        insert(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PICTURES_FOLDER, name, "image/png") { out ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         }
-        shareFile(context, file, "image/png")
     }
 
-    private fun exportFile(context: Context, name: String): File {
-        val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-        dir.listFiles()?.forEach { it.delete() }
-        return File(dir, name)
+    private fun insert(
+        context: Context, collection: Uri, folder: String, name: String, mimeType: String,
+        write: (java.io.OutputStream) -> Unit,
+    ): Saved {
+        val resolver = context.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, folder)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = resolver.insert(collection, values) ?: error("No se pudo crear el archivo")
+        try {
+            resolver.openOutputStream(uri)!!.use(write)
+            values.clear()
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+        } catch (e: Exception) {
+            resolver.delete(uri, null, null)
+            throw e
+        }
+        return Saved(uri, name, folder, mimeType)
     }
 
-    private fun shareFile(context: Context, file: File, mimeType: String) {
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+    fun share(context: Context, saved: Saved) {
         val intent = Intent(Intent.ACTION_SEND)
-            .setType(mimeType)
-            .putExtra(Intent.EXTRA_STREAM, uri)
-            .putExtra(Intent.EXTRA_SUBJECT, file.name)
+            .setType(saved.mimeType)
+            .putExtra(Intent.EXTRA_STREAM, saved.uri)
+            .putExtra(Intent.EXTRA_SUBJECT, saved.name)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_with)))
+    }
+
+    /** Abre el archivo con la app que corresponda (Excel, Google Earth, galería…). */
+    fun open(context: Context, saved: Saved): Boolean = try {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW).setDataAndType(saved.uri, saved.mimeType).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        )
+        true
+    } catch (e: android.content.ActivityNotFoundException) {
+        false
     }
 }

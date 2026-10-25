@@ -1,32 +1,38 @@
 package com.santy.grabacion.main
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.color.MaterialColors
 import com.santy.grabacion.R
-import com.santy.grabacion.UpdateManager
-import com.santy.grabacion.applySystemBarPadding
 import com.santy.grabacion.gate.Destinations
 import com.santy.grabacion.gate.UnlockTrigger
 import com.santy.grabacion.gate.VaultGate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** Pantalla de inicio del módulo principal: lista de especímenes de la colección. */
-class InventoryActivity : AppCompatActivity() {
+/** Pestaña Colección: resumen, filtro por grupo y especímenes en lista o galería. */
+class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
 
-    private val adapter = SpecimenAdapter { startActivity(Destinations.specimen(this, it.id)) }
+    private companion object {
+        const val PREFS = "coleccion"
+        const val KEY_GRID = "vista_galeria"
+    }
+
+    private val adapter = SpecimenAdapter { startActivity(Destinations.specimen(requireContext(), it.id)) }
+    private lateinit var list: RecyclerView
+    private lateinit var toolbar: MaterialToolbar
     private lateinit var emptyView: View
     private lateinit var emptyText: TextView
     private lateinit var summary: LinearLayout
@@ -35,27 +41,24 @@ class InventoryActivity : AppCompatActivity() {
     /** Grupo elegido en los chips, o null para todos. */
     private var groupFilter: String? = null
     private var loadJob: Job? = null
-    private val exporter = ExportController(this, { filtered(SpecimenRepository.all(this, searchQuery)) })
+    private val exporter = ExportController(this, { filtered(SpecimenRepository.all(requireContext(), searchQuery)) })
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_inventory)
-        findViewById<View>(R.id.root).applySystemBarPadding()
-        emptyView = findViewById(R.id.emptyView)
-        emptyText = findViewById(R.id.emptyText)
-        summary = findViewById(R.id.summary)
-        chips = findViewById(R.id.groupChips)
-        findViewById<View>(R.id.summaryCard).setOnClickListener { startActivity(Destinations.stats(this)) }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        list = view.findViewById(R.id.list)
+        emptyView = view.findViewById(R.id.emptyView)
+        emptyText = view.findViewById(R.id.emptyText)
+        summary = view.findViewById(R.id.summary)
+        chips = view.findViewById(R.id.groupChips)
+        view.findViewById<View>(R.id.summaryCard).setOnClickListener {
+            (activity as? CollectionActivity)?.select(R.id.nav_stats)
+        }
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar = view.findViewById(R.id.toolbar)
         toolbar.inflateMenu(R.menu.inventory_menu)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_map -> startActivity(Destinations.collectionMap(this))
-                R.id.action_stats -> startActivity(Destinations.stats(this))
+                R.id.action_view_mode -> setGrid(!adapter.grid)
                 R.id.action_export -> exporter.show()
-                R.id.action_settings -> startActivity(Destinations.mainSettings(this))
                 else -> return@setOnMenuItemClickListener false
             }
             true
@@ -71,32 +74,37 @@ class InventoryActivity : AppCompatActivity() {
                 }
             })
         }
-        UnlockTrigger.attach(findViewById(R.id.toolbarLogo)) { VaultGate.unlock(this) }
+        UnlockTrigger.attach(view.findViewById(R.id.toolbarLogo)) { VaultGate.unlock(requireActivity()) }
 
-        val list = findViewById<RecyclerView>(R.id.list)
-        list.layoutManager = LinearLayoutManager(this)
         list.adapter = adapter
+        setGrid(prefs().getBoolean(KEY_GRID, false))
+    }
 
-        findViewById<View>(R.id.addButton).setOnClickListener {
-            startActivity(Destinations.addSpecimen(this))
+    private fun prefs() = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private fun setGrid(grid: Boolean) {
+        adapter.grid = grid
+        list.layoutManager = if (grid) GridLayoutManager(requireContext(), 2) else LinearLayoutManager(requireContext())
+        list.setPadding(if (grid) dp(11) else 0, list.paddingTop, if (grid) dp(11) else 0, list.paddingBottom)
+        toolbar.menu.findItem(R.id.action_view_mode).apply {
+            setIcon(if (grid) R.drawable.ic_view_list else R.drawable.ic_view_grid)
+            setTitle(if (grid) R.string.view_list else R.string.view_grid)
         }
-
-        if (savedInstanceState == null) UpdateManager.autoCheck(this)
+        prefs().edit().putBoolean(KEY_GRID, grid).apply()
     }
 
-    override fun onResume() {
-        super.onResume()
-        reload()
-    }
+    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     private fun filtered(specimens: List<Specimen>) =
         groupFilter?.let { group -> specimens.filter { it.group == group } } ?: specimens
 
-    private fun reload() {
+    override fun reload() {
+        if (view == null) return
         loadJob?.cancel()
-        loadJob = lifecycleScope.launch {
-            val all = SpecimenRepository.all(this@InventoryActivity)
-            val matching = if (searchQuery.isBlank()) all else SpecimenRepository.all(this@InventoryActivity, searchQuery)
+        loadJob = viewLifecycleOwner.lifecycleScope.launch {
+            val context = requireContext()
+            val all = SpecimenRepository.all(context)
+            val matching = if (searchQuery.isBlank()) all else SpecimenRepository.all(context, searchQuery)
             if (groupFilter != null && all.none { it.group == groupFilter }) groupFilter = null
             val shown = filtered(matching)
             adapter.submitList(shown)
@@ -109,23 +117,24 @@ class InventoryActivity : AppCompatActivity() {
 
     private fun showSummary(stats: CollectionStats) {
         summary.removeAllViews()
+        val color = MaterialColors.getColor(summary, com.google.android.material.R.attr.colorOnPrimaryContainer)
         listOf(
             stats.total to R.string.metric_records,
             stats.species to R.string.metric_species,
             stats.groups to R.string.metric_groups,
             stats.localities to R.string.metric_localities,
         ).forEach { (value, label) ->
-            val view = LayoutInflater.from(this).inflate(R.layout.item_metric, summary, false)
-            view.findViewById<TextView>(R.id.value).apply {
+            val metric = LayoutInflater.from(requireContext()).inflate(R.layout.item_metric, summary, false)
+            metric.findViewById<TextView>(R.id.value).apply {
                 text = value.toString()
                 textSize = 20f
-                setTextColor(com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnPrimaryContainer))
+                setTextColor(color)
             }
-            view.findViewById<TextView>(R.id.label).apply {
+            metric.findViewById<TextView>(R.id.label).apply {
                 setText(label)
-                setTextColor(com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnPrimaryContainer))
+                setTextColor(color)
             }
-            summary.addView(view)
+            summary.addView(metric)
         }
     }
 
@@ -133,10 +142,10 @@ class InventoryActivity : AppCompatActivity() {
     private fun showChips(all: List<Specimen>) {
         val groups = all.map { it.group }.filter { it.isNotBlank() }.groupingBy { it }.eachCount()
             .entries.sortedByDescending { it.value }
-        findViewById<View>(R.id.chipsScroll).visibility = if (groups.size < 2) View.GONE else View.VISIBLE
+        requireView().findViewById<View>(R.id.chipsScroll).visibility = if (groups.size < 2) View.GONE else View.VISIBLE
         chips.setOnCheckedStateChangeListener(null)
         chips.removeAllViews()
-        fun chip(label: String, group: String?, color: Int?) = Chip(this).apply {
+        fun chip(label: String, group: String?, color: Int?) = Chip(requireContext()).apply {
             id = View.generateViewId()
             text = label
             isCheckable = true

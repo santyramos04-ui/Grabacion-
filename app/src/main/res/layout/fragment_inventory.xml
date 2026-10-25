@@ -94,7 +94,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingTop="4dp"
-            android:paddingBottom="96dp" />
+            android:paddingBottom="40dp" />
 
         <LinearLayout
             android:id="@+id/emptyView"
@@ -124,13 +124,5 @@
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-            android:id="@+id/addButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:text="@string/add_specimen"
-            app:icon="@drawable/ic_add" />
     </FrameLayout>
 </LinearLayout>

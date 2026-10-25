@@ -5,14 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.drawToBitmap
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.MaterialToolbar
@@ -20,14 +20,12 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.santy.grabacion.R
-import com.santy.grabacion.applySystemBarPadding
 import com.santy.grabacion.gate.Destinations
 import kotlinx.coroutines.launch
 import org.osmdroid.tileprovider.tilesource.ITileSource
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
@@ -39,7 +37,7 @@ import java.util.Locale
  * Mapa de la colección: marcadores con el color del grupo, filtro por grupo, capa estándar o
  * topográfica, polígono de la extensión de presencia (EOO) y resumen de lo que se muestra.
  */
-class CollectionMapActivity : AppCompatActivity() {
+class MapFragment : CollectionTab(R.layout.fragment_map) {
 
     private companion object {
         const val PREFS = "mapa"
@@ -67,24 +65,26 @@ class CollectionMapActivity : AppCompatActivity() {
 
     private val exporter = ExportController(this, { visible() }, { buildMapImage() })
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        MapSetup.init(this)
-        setContentView(R.layout.activity_collection_map)
-        findViewById<View>(R.id.root).applySystemBarPadding()
+    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (SpecimenLocation.hasPermission(requireContext())) centerOnMe()
+        else Toast.makeText(requireContext(), R.string.location_no_permission, Toast.LENGTH_LONG).show()
+    }
 
-        chips = findViewById(R.id.groupChips)
-        metrics = findViewById(R.id.metrics)
-        detail = findViewById(R.id.mapDetail)
-        map = findViewById(R.id.map)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        MapSetup.init(requireContext())
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        chips = view.findViewById(R.id.groupChips)
+        metrics = view.findViewById(R.id.metrics)
+        detail = view.findViewById(R.id.mapDetail)
+        map = view.findViewById(R.id.map)
         map.configure(interactive = true)
         map.setTileSource(layers.getOrNull(prefs().getInt(KEY_LAYER, 0))?.second ?: TileSourceFactory.MAPNIK)
         showHull = prefs().getBoolean(KEY_HULL, true)
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        toolbar.setNavigationIcon(R.drawable.ic_back)
-        toolbar.setNavigationOnClickListener { finish() }
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.map_menu)
         toolbar.menu.findItem(R.id.action_hull).isChecked = showHull
         toolbar.setOnMenuItemClickListener { item ->
@@ -101,28 +101,68 @@ class CollectionMapActivity : AppCompatActivity() {
             true
         }
 
-        findViewById<View>(R.id.fitButton).setOnClickListener { fit(visible()) }
-        findViewById<View>(R.id.myLocationButton).setOnClickListener {
-            val point = myLocation?.myLocation
-            if (point != null) {
-                map.controller.animateTo(point, 15.0, 600L)
-            } else {
-                Toast.makeText(this, R.string.location_failed, Toast.LENGTH_SHORT).show()
-            }
+        view.findViewById<View>(R.id.fitButton).setOnClickListener { fit(visible()) }
+        view.findViewById<View>(R.id.myLocationButton).setOnClickListener {
+            if (SpecimenLocation.hasPermission(requireContext())) centerOnMe()
+            else locationPermission.launch(SpecimenLocation.PERMISSIONS)
         }
-        if (SpecimenLocation.hasPermission(this)) {
-            myLocation = MyLocationNewOverlay(GpsMyLocationProvider(this), map)
-        } else {
-            findViewById<View>(R.id.myLocationButton).visibility = View.GONE
+        if (SpecimenLocation.hasPermission(requireContext())) ensureMyLocationOverlay()
+    }
+
+    private fun ensureMyLocationOverlay(): MyLocationNewOverlay =
+        myLocation ?: MyLocationNewOverlay(GpsMyLocationProvider(requireContext()), map).also {
+            myLocation = it
+            it.enableMyLocation()
+            redraw()
+        }
+
+    /** Centra el mapa en la posición actual; si el GPS aún no la tiene, la pide. */
+    private fun centerOnMe() {
+        val overlay = ensureMyLocationOverlay()
+        overlay.myLocation?.let {
+            map.controller.animateTo(it, 16.0, 600L)
+            return
+        }
+        Toast.makeText(requireContext(), R.string.location_searching, Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val fix = SpecimenLocation.current(requireContext())
+            if (fix == null) {
+                Toast.makeText(requireContext(), R.string.location_failed, Toast.LENGTH_LONG).show()
+            } else {
+                map.controller.animateTo(GeoPoint(fix.latitude, fix.longitude), 16.0, 600L)
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        if (!isHidden) resumeMap()
+    }
+
+    override fun onPause() {
+        pauseMap()
+        super.onPause()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        if (hidden) pauseMap() else resumeMap()
+        super.onHiddenChanged(hidden)
+    }
+
+    private fun resumeMap() {
         map.onResume()
         myLocation?.enableMyLocation()
-        lifecycleScope.launch {
-            all = SpecimenRepository.all(this@CollectionMapActivity).filter { it.hasLocation }
+    }
+
+    private fun pauseMap() {
+        myLocation?.disableMyLocation()
+        map.onPause()
+    }
+
+    override fun reload() {
+        if (view == null) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            all = SpecimenRepository.all(requireContext()).filter { it.hasLocation }
             buildChips()
             redraw()
             if (!centered && all.isNotEmpty()) {
@@ -130,12 +170,6 @@ class CollectionMapActivity : AppCompatActivity() {
                 map.post { fit(visible()) }
             }
         }
-    }
-
-    override fun onPause() {
-        myLocation?.disableMyLocation()
-        map.onPause()
-        super.onPause()
     }
 
     private fun groupOf(specimen: Specimen) = specimen.group.ifBlank { NO_GROUP }
@@ -146,7 +180,7 @@ class CollectionMapActivity : AppCompatActivity() {
         chips.removeAllViews()
         all.groupingBy { groupOf(it) }.eachCount().entries.sortedByDescending { it.value }.forEach { (group, count) ->
             val color = GroupColors.colorFor(if (group == NO_GROUP) "" else group)
-            chips.addView(Chip(this).apply {
+            chips.addView(Chip(requireContext()).apply {
                 text = "$group · $count"
                 isCheckable = true
                 isChecked = group !in hidden
@@ -182,11 +216,11 @@ class CollectionMapActivity : AppCompatActivity() {
         myLocation?.let { map.overlays.add(it) }
         shown.forEach { specimen ->
             map.overlays.add(specimenMarker(map, specimen, GeoPoint(specimen.latitude!!, specimen.longitude!!)) {
-                startActivity(Destinations.specimen(this, specimen.id))
+                startActivity(Destinations.specimen(requireContext(), specimen.id))
             })
         }
         map.invalidate()
-        findViewById<View>(R.id.emptyText).visibility = if (all.isEmpty()) View.VISIBLE else View.GONE
+        requireView().findViewById<View>(R.id.emptyText).visibility = if (all.isEmpty()) View.VISIBLE else View.GONE
         showSummary(stats, geo)
     }
 
@@ -198,7 +232,7 @@ class CollectionMapActivity : AppCompatActivity() {
             (geo?.let { "${fmt(it.eooKm2)} km²" } ?: "—") to getString(R.string.metric_eoo),
             (geo?.let { "${fmt(it.maxDistanceKm)} km" } ?: "—") to getString(R.string.metric_max_distance),
         ).forEach { (value, label) ->
-            val view = LayoutInflater.from(this).inflate(R.layout.item_metric, metrics, false)
+            val view = LayoutInflater.from(requireContext()).inflate(R.layout.item_metric, metrics, false)
             view.findViewById<TextView>(R.id.value).apply {
                 text = value
                 textSize = 17f
@@ -228,12 +262,12 @@ class CollectionMapActivity : AppCompatActivity() {
 
     private fun chooseLayer() {
         val current = prefs().getInt(KEY_LAYER, 0)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.map_layer)
             .setSingleChoiceItems(layers.map { getString(it.first) }.toTypedArray(), current) { dialog, which ->
                 prefs().edit().putInt(KEY_LAYER, which).apply()
                 map.setTileSource(layers[which].second)
-                findViewById<TextView>(R.id.attribution).setText(
+                requireView().findViewById<TextView>(R.id.attribution).setText(
                     if (which == 1) R.string.map_attribution_topo else R.string.map_attribution
                 )
                 dialog.dismiss()
@@ -280,7 +314,7 @@ class CollectionMapActivity : AppCompatActivity() {
         return result
     }
 
-    private fun prefs() = getSharedPreferences(PREFS, MODE_PRIVATE)
+    private fun prefs() = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 
@@ -289,28 +323,3 @@ class CollectionMapActivity : AppCompatActivity() {
     private fun coord(value: Double) = String.format(Locale.US, "%.4f", value)
 }
 
-/** Ajustes comunes de los mapas de la app (OpenStreetMap). */
-fun MapView.configure(interactive: Boolean) {
-    setTileSource(TileSourceFactory.MAPNIK)
-    setMultiTouchControls(interactive)
-    zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
-    isTilesScaledToDpi = true
-    controller.setZoom(4.0)
-}
-
-/**
- * Marcador de un espécimen con el color de su grupo: el primer toque muestra código y nombre;
- * tocarlo de nuevo ejecuta [onOpen].
- */
-fun specimenMarker(map: MapView, specimen: Specimen, point: GeoPoint, onOpen: (() -> Unit)?): Marker =
-    Marker(map).apply {
-        position = point
-        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        icon = GroupColors.markerIcon(map.context, GroupColors.colorFor(specimen.group))
-        title = "${specimen.catalogCode} · ${specimen.scientificName}"
-        snippet = listOf(specimen.commonName, specimen.collectedOn).filter { it.isNotBlank() }.joinToString(" · ")
-        setOnMarkerClickListener { marker, _ ->
-            if (marker.isInfoWindowShown && onOpen != null) onOpen() else marker.showInfoWindow()
-            true
-        }
-    }

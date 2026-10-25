@@ -117,6 +117,14 @@
     <string name="map_empty">Ningún espécimen tiene ubicación GPS todavía.</string>
     <string name="map_attribution">© colaboradores de OpenStreetMap</string>
     <string name="filter_all">Todos</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_add">Añadir</string>
+    <string name="view_grid">Ver como galería</string>
+    <string name="view_list">Ver como lista</string>
+    <string name="export_saved_message">%1$s\n\nGuardado en %2$s (app Archivos del teléfono).</string>
+    <string name="export_open">Abrir</string>
+    <string name="export_no_app">No hay una app instalada para abrir este archivo</string>
+    <string name="done">Listo</string>
     <string name="metadata_applied">Se usó la %s guardada en la foto</string>
 
     <!-- Exportar -->
@@ -125,8 +133,7 @@
     <string name="export_geojson">GeoJSON · QGIS y SIG</string>
     <string name="export_kml">KML · Google Earth</string>
     <string name="export_map_image">Imagen del mapa (PNG)</string>
-    <string name="export_save_device">Guardar en el teléfono</string>
-    <string name="export_saved">Archivo guardado</string>
+    <string name="export_saved">Guardado en el teléfono</string>
 
     <!-- Mapa -->
     <string name="map_layer">Capa del mapa</string>

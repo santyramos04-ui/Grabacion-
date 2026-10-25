@@ -5,39 +5,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.MaterialToolbar
 import com.santy.grabacion.R
-import com.santy.grabacion.applySystemBarPadding
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 /** Estadísticas de la colección: riqueza, diversidad, composición, tiempo, altitud y geografía. */
-class StatsActivity : AppCompatActivity() {
+class StatsFragment : CollectionTab(R.layout.fragment_stats) {
 
     private lateinit var content: LinearLayout
-    private val exporter = ExportController(this, { SpecimenRepository.all(this) })
+    private val exporter = ExportController(this, { SpecimenRepository.all(requireContext()) })
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_stats)
-        findViewById<View>(R.id.root).applySystemBarPadding()
-        content = findViewById(R.id.content)
-
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        toolbar.setNavigationIcon(R.drawable.ic_back)
-        toolbar.setNavigationOnClickListener { finish() }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        content = view.findViewById(R.id.content)
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.stats_menu)
         toolbar.setOnMenuItemClickListener { exporter.show(); true }
     }
 
-    override fun onResume() {
-        super.onResume()
-        lifecycleScope.launch { render(CollectionStats(SpecimenRepository.all(this@StatsActivity))) }
+    override fun reload() {
+        if (view == null) return
+        viewLifecycleOwner.lifecycleScope.launch { render(CollectionStats(SpecimenRepository.all(requireContext()))) }
     }
 
     private fun render(stats: CollectionStats) {
@@ -72,15 +62,15 @@ class StatsActivity : AppCompatActivity() {
         card(
             getString(R.string.stats_accumulation),
             getString(if (completeness >= 0.9) R.string.stats_accumulation_stable else R.string.stats_accumulation_rising)
-        ).addView(LineChartView(this).apply { setData(curve, stats.chao1.takeIf { stats.species > 0 }) })
+        ).addView(LineChartView(requireContext()).apply { setData(curve, stats.chao1.takeIf { stats.species > 0 }) })
 
-        card(getString(R.string.stats_by_group)).addView(BarListView(this).apply {
+        card(getString(R.string.stats_by_group)).addView(BarListView(requireContext()).apply {
             setBars(stats.byGroup().map {
                 BarListView.Bar(it.label, it.value, GroupColors.colorFor(if (it.label == "Sin grupo") "" else it.label))
             }, stats.total)
         })
 
-        card(getString(R.string.stats_top_species)).addView(BarListView(this).apply {
+        card(getString(R.string.stats_top_species)).addView(BarListView(requireContext()).apply {
             setBars(stats.topSpecies().map { BarListView.Bar(it.label, it.value, italic = true) }, stats.total)
         })
 
@@ -88,7 +78,7 @@ class StatsActivity : AppCompatActivity() {
         if (months.isNotEmpty()) {
             val parse = SimpleDateFormat("yyyy-MM", Locale.US)
             val label = SimpleDateFormat("MMM yy", Locale.getDefault())
-            card(getString(R.string.stats_by_month)).addView(ColumnChartView(this).apply {
+            card(getString(R.string.stats_by_month)).addView(ColumnChartView(requireContext()).apply {
                 setData(months.map { it.value }, months.map { m -> runCatching { label.format(parse.parse(m.label)!!) }.getOrDefault(m.label) })
             })
         }
@@ -100,7 +90,7 @@ class StatsActivity : AppCompatActivity() {
                 meters(alt.median) to getString(R.string.metric_median),
                 meters(alt.max) to getString(R.string.metric_max),
             )
-            altitudeCard.addView(BarListView(this).apply {
+            altitudeCard.addView(BarListView(requireContext()).apply {
                 setBars(stats.altitudeBands().map { BarListView.Bar(it.label, it.value) }, alt.count)
             })
         }
@@ -112,7 +102,7 @@ class StatsActivity : AppCompatActivity() {
                 "${fmt(geo.maxDistanceKm, 1)} km" to getString(R.string.metric_max_distance),
                 "${fmt(geo.eooKm2, 1)} km²" to getString(R.string.metric_eoo),
             )
-            geoCard.addView(TextView(this).apply {
+            geoCard.addView(TextView(requireContext()).apply {
                 setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
                 text = getString(
                     R.string.stats_geography_detail,
@@ -124,7 +114,7 @@ class StatsActivity : AppCompatActivity() {
 
         val localities = stats.topLocalities()
         if (localities.isNotEmpty()) {
-            card(getString(R.string.stats_localities)).addView(BarListView(this).apply {
+            card(getString(R.string.stats_localities)).addView(BarListView(requireContext()).apply {
                 setBars(localities.map { BarListView.Bar(it.label, it.value) }, stats.total)
             })
         }
@@ -132,7 +122,7 @@ class StatsActivity : AppCompatActivity() {
 
     /** Añade una tarjeta y devuelve su contenedor. */
     private fun card(title: String, subtitle: String? = null): LinearLayout {
-        val view = LayoutInflater.from(this).inflate(R.layout.item_stat_card, content, false)
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.item_stat_card, content, false)
         view.findViewById<TextView>(R.id.title).text = title
         view.findViewById<TextView>(R.id.subtitle).apply {
             text = subtitle
