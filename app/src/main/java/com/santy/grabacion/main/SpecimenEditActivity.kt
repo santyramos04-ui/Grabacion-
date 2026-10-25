@@ -10,7 +10,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -45,6 +44,7 @@ class SpecimenEditActivity : AppCompatActivity() {
         const val STATE_LOCATION = "location"
         const val PREFS = "coleccion"
         const val KEY_LAST_COLLECTOR = "ultimo_colector"
+        const val KEY_ASKED_MEDIA_LOCATION = "pidio_ubicacion_fotos"
     }
 
     private lateinit var photoView: ImageView
@@ -83,15 +83,22 @@ class SpecimenEditActivity : AppCompatActivity() {
         if (ok) replacePhoto(captured) else SpecimenPhotos.delete(this, captured)
     }
 
-    private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+    private val pickPhoto = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
         lifecycleScope.launch {
             try {
-                replacePhoto(SpecimenPhotos.import(this@SpecimenEditActivity, uri).name)
+                val file = SpecimenPhotos.import(this@SpecimenEditActivity, PhotoMetadata.candidates(this@SpecimenEditActivity, uri))
+                replacePhoto(file.name)
+                PhotoMetadata.read(file)?.let { applyMetadata(it) }
             } catch (e: Exception) {
                 Toast.makeText(this@SpecimenEditActivity, e.message, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    /** Pide (una vez) el permiso para leer la ubicación de las fotos y luego abre el selector. */
+    private val mediaLocationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        pickPhoto.launch(arrayOf("image/*"))
     }
 
     private val cameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -130,7 +137,12 @@ class SpecimenEditActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.takePhotoButton).setOnClickListener { takePhotoWithPermission() }
         findViewById<View>(R.id.pickPhotoButton).setOnClickListener {
-            pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            if (!PhotoMetadata.hasMediaLocationPermission(this) && !prefs().getBoolean(KEY_ASKED_MEDIA_LOCATION, false)) {
+                prefs().edit().putBoolean(KEY_ASKED_MEDIA_LOCATION, true).apply()
+                mediaLocationPermission.launch(android.Manifest.permission.ACCESS_MEDIA_LOCATION)
+            } else {
+                pickPhoto.launch(arrayOf("image/*"))
+            }
         }
         removePhotoButton.setOnClickListener { replacePhoto(null) }
         common.setAdapter(suggestions)
@@ -219,6 +231,29 @@ class SpecimenEditActivity : AppCompatActivity() {
                 SpecimenLocation.placeName(this@SpecimenEditActivity, fix.latitude, fix.longitude)
                     ?.let { if (locality.text.isNullOrBlank()) locality.setText(it) }
             }
+        }
+    }
+
+    /** Usa la fecha y el punto guardados en la foto elegida. */
+    private fun applyMetadata(info: PhotoMetadata.Info) {
+        val applied = mutableListOf<String>()
+        info.date?.let {
+            date.setText(it)
+            applied += getString(R.string.field_date).lowercase()
+        }
+        if (info.hasLocation) {
+            locationJob?.cancel()
+            setLocation(doubleArrayOf(info.latitude!!, info.longitude!!, info.altitude ?: Double.NaN, Double.NaN))
+            applied += getString(R.string.field_location).lowercase()
+            if (locality.text.isNullOrBlank()) {
+                lifecycleScope.launch {
+                    SpecimenLocation.placeName(this@SpecimenEditActivity, info.latitude!!, info.longitude!!)
+                        ?.let { if (locality.text.isNullOrBlank()) locality.setText(it) }
+                }
+            }
+        }
+        if (applied.isNotEmpty()) {
+            Toast.makeText(this, getString(R.string.metadata_applied, applied.joinToString(" y ")), Toast.LENGTH_LONG).show()
         }
     }
 

@@ -7,6 +7,7 @@ import com.santy.grabacion.main.CollectionMapActivity
 import com.santy.grabacion.main.InventoryActivity
 import com.santy.grabacion.main.MainSettingsActivity
 import com.santy.grabacion.main.SpecimenEditActivity
+import com.santy.grabacion.main.StatsActivity
 import com.santy.grabacion.main.SpecimenDetailActivity
 
 /** Destinos de navegación centralizados de ambos módulos. */
@@ -21,6 +22,7 @@ object Destinations {
     fun editSpecimen(context: Context, id: Long) =
         Intent(context, SpecimenEditActivity::class.java).putExtra(EXTRA_SPECIMEN_ID, id)
     fun collectionMap(context: Context) = Intent(context, CollectionMapActivity::class.java)
+    fun stats(context: Context) = Intent(context, StatsActivity::class.java)
     fun mainSettings(context: Context) = Intent(context, MainSettingsActivity::class.java)
 
     // Vault: la app de cámara, cuya entrada sigue siendo MainActivity.

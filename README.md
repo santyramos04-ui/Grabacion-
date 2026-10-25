@@ -12,8 +12,16 @@ App Android con dos módulos:
   Al añadir un espécimen se toma automáticamente el punto GPS (coordenadas, altitud y
   precisión) y, si la localidad está vacía, se llena con el nombre del lugar. Con GPS, las
   sugerencias buscan especies observadas a menos de 30 km. La ficha muestra el punto en un
-  mapa de [OpenStreetMap](https://www.openstreetmap.org) y el menú de la colección tiene un
-  mapa con todos los especímenes. Las fotos se guardan en el almacenamiento privado de la app,
+  mapa de [OpenStreetMap](https://www.openstreetmap.org).
+  - **Mapa de la colección**: marcadores con el color de cada grupo, filtro por grupo, capa
+    estándar o topográfica, polígono de extensión de presencia (EOO) y resumen de puntos,
+    especies, área y altitud.
+  - **Estadísticas**: riqueza observada y estimada (Chao1), completitud, Shannon, Simpson,
+    Pielou, curva de acumulación de especies, registros por grupo, especie, mes, altitud y
+    localidad, y distribución geográfica.
+  - **Exportar**: CSV con columnas Darwin Core (Excel, GBIF), GeoJSON (QGIS), KML (Google
+    Earth) e imagen del mapa con leyenda; se comparten o se guardan en el teléfono.
+  - Al elegir una foto de la galería se leen su fecha y coordenadas (EXIF). Las fotos se guardan en el almacenamiento privado de la app,
   fuera de la galería del teléfono.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
   funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.

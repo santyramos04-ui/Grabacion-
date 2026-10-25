@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paleta de la Colección: tonos del búho (marrón, ocre) con un verde hoja como acento. -->
+<resources>
+    <color name="owl_primary">#7C4F14</color>
+    <color name="owl_on_primary">#FFFFFF</color>
+    <color name="owl_primary_container">#FFDDB5</color>
+    <color name="owl_on_primary_container">#2A1700</color>
+    <color name="owl_secondary">#6E5B43</color>
+    <color name="owl_on_secondary">#FFFFFF</color>
+    <color name="owl_secondary_container">#F8DEBF</color>
+    <color name="owl_on_secondary_container">#271906</color>
+    <color name="owl_tertiary">#4B6339</color>
+    <color name="owl_on_tertiary">#FFFFFF</color>
+    <color name="owl_tertiary_container">#CDE9B3</color>
+    <color name="owl_on_tertiary_container">#0B2000</color>
+    <color name="owl_background">#FFF8F2</color>
+    <color name="owl_on_background">#211A14</color>
+    <color name="owl_surface">#FFF8F2</color>
+    <color name="owl_on_surface">#211A14</color>
+    <color name="owl_surface_variant">#F1E0D0</color>
+    <color name="owl_on_surface_variant">#50453A</color>
+    <color name="owl_surface_container_low">#FCF1E7</color>
+    <color name="owl_surface_container">#F6EBE1</color>
+    <color name="owl_surface_container_high">#F0E5DB</color>
+    <color name="owl_outline">#837568</color>
+    <color name="owl_outline_variant">#D5C4B5</color>
+</resources>

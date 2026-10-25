@@ -24,13 +24,25 @@ object SpecimenPhotos {
     fun uriFor(context: Context, file: File): Uri =
         FileProvider.getUriForFile(context, "${context.packageName}.files", file)
 
-    /** Copia una imagen elegida de la galería a un archivo propio. */
-    suspend fun import(context: Context, source: Uri): File = withContext(Dispatchers.IO) {
+    /**
+     * Copia una imagen elegida a un archivo propio, conservando sus metadatos. Prueba las
+     * [sources] en orden (la original con ubicación primero) y usa la primera que se pueda abrir.
+     */
+    suspend fun import(context: Context, sources: List<Uri>): File = withContext(Dispatchers.IO) {
         val target = newFile(context)
-        context.contentResolver.openInputStream(source)!!.use { input ->
-            target.outputStream().use { input.copyTo(it) }
+        var lastError: Exception? = null
+        for (source in sources) {
+            try {
+                context.contentResolver.openInputStream(source)!!.use { input ->
+                    target.outputStream().use { input.copyTo(it) }
+                }
+                return@withContext target
+            } catch (e: Exception) {
+                lastError = e
+            }
         }
-        target
+        target.delete()
+        throw lastError ?: IllegalArgumentException("Sin imagen")
     }
 
     fun delete(context: Context, name: String?) {

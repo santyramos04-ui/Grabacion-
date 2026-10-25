@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -16,9 +17,11 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val thumb: ImageView = view.findViewById(R.id.thumb)
+        val code: TextView = view.findViewById(R.id.code)
+        val group: TextView = view.findViewById(R.id.group)
+        val date: TextView = view.findViewById(R.id.date)
         val scientific: TextView = view.findViewById(R.id.scientificName)
         val subtitle: TextView = view.findViewById(R.id.subtitle)
-        val date: TextView = view.findViewById(R.id.date)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -34,11 +37,16 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val specimen = getItem(position)
         val context = holder.itemView.context
-        holder.scientific.text = specimen.scientificName
-        holder.subtitle.text = listOf(specimen.catalogCode, specimen.commonName, specimen.group)
-            .filter { it.isNotBlank() }
-            .joinToString(" · ")
+        holder.code.text = specimen.catalogCode
+        holder.code.background = ContextCompat.getDrawable(context, R.drawable.bg_code)?.mutate()?.apply {
+            setTint(GroupColors.colorFor(specimen.group))
+        }
+        holder.group.text = specimen.group
         holder.date.text = specimen.collectedOn
+        holder.scientific.text = specimen.scientificName
+        val place = if (specimen.hasLocation) "📍 ${specimen.locality}".trimEnd() else specimen.locality
+        holder.subtitle.text = listOf(specimen.commonName, place).filter { it.isNotBlank() }.joinToString(" · ")
+        holder.subtitle.visibility = if (holder.subtitle.text.isEmpty()) View.GONE else View.VISIBLE
         val photo = specimen.photo
         if (photo == null) {
             Glide.with(holder.thumb).clear(holder.thumb)

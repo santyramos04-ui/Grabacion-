@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modo oscuro: el fondo es el mismo gris azulado del icono. -->
+<resources>
+    <color name="owl_primary">#EDBB7C</color>
+    <color name="owl_on_primary">#452B00</color>
+    <color name="owl_primary_container">#623F0E</color>
+    <color name="owl_on_primary_container">#FFDDB5</color>
+    <color name="owl_secondary">#DBC2A4</color>
+    <color name="owl_on_secondary">#3D2E18</color>
+    <color name="owl_secondary_container">#55442D</color>
+    <color name="owl_on_secondary_container">#F8DEBF</color>
+    <color name="owl_tertiary">#B1CD98</color>
+    <color name="owl_on_tertiary">#1E360E</color>
+    <color name="owl_tertiary_container">#344B23</color>
+    <color name="owl_on_tertiary_container">#CDE9B3</color>
+    <color name="owl_background">#15171C</color>
+    <color name="owl_on_background">#ECE1D7</color>
+    <color name="owl_surface">#15171C</color>
+    <color name="owl_on_surface">#ECE1D7</color>
+    <color name="owl_surface_variant">#3A3530</color>
+    <color name="owl_on_surface_variant">#D5C4B5</color>
+    <color name="owl_surface_container_low">#1B1D23</color>
+    <color name="owl_surface_container">#202229</color>
+    <color name="owl_surface_container_high">#2A2C33</color>
+    <color name="owl_outline">#9D8F82</color>
+    <color name="owl_outline_variant">#50453A</color>
+</resources>

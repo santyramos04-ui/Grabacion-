@@ -79,6 +79,13 @@ class SpecimenDetailActivity : AppCompatActivity() {
 
     private fun show(specimen: Specimen) {
         toolbar.title = specimen.catalogCode
+        findViewById<TextView>(R.id.code).apply {
+            text = specimen.catalogCode
+            background = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.bg_code)?.mutate()?.apply {
+                setTint(GroupColors.colorFor(specimen.group))
+            }
+        }
+        findViewById<TextView>(R.id.group).text = specimen.group
         findViewById<TextView>(R.id.scientificName).text = specimen.scientificName
         findViewById<TextView>(R.id.commonName).apply {
             text = specimen.commonName
@@ -103,7 +110,6 @@ class SpecimenDetailActivity : AppCompatActivity() {
 
         fields.removeAllViews()
         listOf(
-            R.string.field_group to specimen.group,
             R.string.field_date to specimen.collectedOn,
             R.string.field_locality to specimen.locality,
             R.string.field_collector to specimen.collector,

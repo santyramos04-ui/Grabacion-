@@ -4,9 +4,59 @@
         <item name="colorOnPrimary">#FFFFFF</item>
     </style>
 
+    <!-- Tema del módulo principal (Colección). El vault conserva Theme.Owl. -->
+    <style name="Theme.Owl.Collection" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/owl_primary</item>
+        <item name="colorOnPrimary">@color/owl_on_primary</item>
+        <item name="colorPrimaryContainer">@color/owl_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/owl_on_primary_container</item>
+        <item name="colorSecondary">@color/owl_secondary</item>
+        <item name="colorOnSecondary">@color/owl_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/owl_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/owl_on_secondary_container</item>
+        <item name="colorTertiary">@color/owl_tertiary</item>
+        <item name="colorOnTertiary">@color/owl_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/owl_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/owl_on_tertiary_container</item>
+        <item name="android:colorBackground">@color/owl_background</item>
+        <item name="colorOnBackground">@color/owl_on_background</item>
+        <item name="colorSurface">@color/owl_surface</item>
+        <item name="colorOnSurface">@color/owl_on_surface</item>
+        <item name="colorSurfaceVariant">@color/owl_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/owl_on_surface_variant</item>
+        <item name="colorSurfaceContainerLow">@color/owl_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/owl_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/owl_surface_container_high</item>
+        <item name="colorOutline">@color/owl_outline</item>
+        <item name="colorOutlineVariant">@color/owl_outline_variant</item>
+        <item name="materialCardViewStyle">@style/Widget.Owl.Card</item>
+        <item name="toolbarStyle">@style/Widget.Owl.Toolbar</item>
+    </style>
+
+    <style name="Widget.Owl.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainer</item>
+        <item name="cardCornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.Owl.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">?android:attr/colorBackground</item>
+    </style>
+
+    <!-- Títulos de las tarjetas de estadísticas y secciones. -->
+    <style name="TextAppearance.Owl.Section" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- Cifras grandes del resumen. -->
+    <style name="TextAppearance.Owl.Metric" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
     <style name="ShapeAppearance.Owl.Thumb" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
+        <item name="cornerSize">12dp</item>
     </style>
 
     <!-- Nombre de la app: Roboto Black en mayúsculas. -->

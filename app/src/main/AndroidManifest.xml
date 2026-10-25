@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
@@ -35,8 +36,8 @@
         <!-- Punto de entrada: decide entre el módulo principal y el vault. -->
         <activity
             android:name=".gate.SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Owl">
+            android:theme="@style/Theme.Owl.Collection"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -46,20 +47,29 @@
         <!-- Módulo principal: inventario de colección biológica. -->
         <activity
             android:name=".main.InventoryActivity"
+            android:theme="@style/Theme.Owl.Collection"
             android:exported="false"
             android:launchMode="singleTop" />
         <activity
             android:name=".main.SpecimenDetailActivity"
+            android:theme="@style/Theme.Owl.Collection"
             android:exported="false" />
         <activity
             android:name=".main.SpecimenEditActivity"
+            android:theme="@style/Theme.Owl.Collection"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".main.CollectionMapActivity"
+            android:theme="@style/Theme.Owl.Collection"
+            android:exported="false" />
+        <activity
+            android:name=".main.StatsActivity"
+            android:theme="@style/Theme.Owl.Collection"
             android:exported="false" />
         <activity
             android:name=".main.MainSettingsActivity"
+            android:theme="@style/Theme.Owl.Collection"
             android:exported="false" />
 
         <!-- Vault: la app de cámara en segundo plano. -->

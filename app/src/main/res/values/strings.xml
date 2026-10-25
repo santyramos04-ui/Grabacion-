@@ -116,6 +116,68 @@
     <string name="collection_map">Mapa de la colección</string>
     <string name="map_empty">Ningún espécimen tiene ubicación GPS todavía.</string>
     <string name="map_attribution">© colaboradores de OpenStreetMap</string>
+    <string name="filter_all">Todos</string>
+    <string name="metadata_applied">Se usó la %s guardada en la foto</string>
+
+    <!-- Exportar -->
+    <string name="export_title">Exportar</string>
+    <string name="export_csv">CSV · Excel y GBIF (Darwin Core)</string>
+    <string name="export_geojson">GeoJSON · QGIS y SIG</string>
+    <string name="export_kml">KML · Google Earth</string>
+    <string name="export_map_image">Imagen del mapa (PNG)</string>
+    <string name="export_save_device">Guardar en el teléfono</string>
+    <string name="export_saved">Archivo guardado</string>
+
+    <!-- Mapa -->
+    <string name="map_layer">Capa del mapa</string>
+    <string name="map_layer_standard">Estándar (OpenStreetMap)</string>
+    <string name="map_layer_topo">Topográfico (OpenTopoMap)</string>
+    <string name="map_attribution_topo">© OpenStreetMap · SRTM · OpenTopoMap (CC-BY-SA)</string>
+    <string name="map_show_hull">Mostrar extensión (EOO)</string>
+    <string name="map_fit">Ver toda la colección</string>
+    <string name="map_my_location">Mi ubicación</string>
+    <string name="map_altitude_range">Altitud %1$s – %2$s</string>
+    <string name="map_centroid">Centro %1$s, %2$s</string>
+    <string name="map_export_title">Colección OWL · mapa de registros</string>
+    <string name="map_export_summary">%1$d registros · %2$d especies · EOO %3$s km²</string>
+
+    <!-- Estadísticas -->
+    <string name="stats_title">Estadísticas</string>
+    <string name="stats_empty">Añade especímenes para ver las estadísticas de la colección.</string>
+    <string name="stats_summary">Resumen</string>
+    <string name="stats_diversity">Riqueza y diversidad</string>
+    <string name="stats_diversity_help">Chao1 estima cuántas especies habría con un muestreo completo, a partir de las especies con 1 y 2 registros. Shannon y Simpson miden la diversidad; Pielou, qué tan parejas son las abundancias (1 = todas iguales).</string>
+    <string name="stats_accumulation">Curva de acumulación de especies</string>
+    <string name="stats_accumulation_stable">La curva se aplana cerca de Chao1: el inventario está casi completo.</string>
+    <string name="stats_accumulation_rising">La curva sigue subiendo: aún faltan especies por registrar en la zona.</string>
+    <string name="stats_by_group">Registros por grupo</string>
+    <string name="stats_top_species">Especies más registradas</string>
+    <string name="stats_by_month">Registros por mes</string>
+    <string name="stats_altitude">Altitud</string>
+    <string name="stats_altitude_help">Calculada con %d registros con altitud GPS.</string>
+    <string name="stats_geography">Distribución geográfica</string>
+    <string name="stats_geography_help">EOO (extensión de presencia, criterio B de la UICN): área del polígono convexo mínimo que contiene los registros.</string>
+    <string name="stats_geography_detail">Centro: %1$s, %2$s\nLatitud: %3$s a %4$s · Longitud: %5$s a %6$s</string>
+    <string name="stats_localities">Localidades con más registros</string>
+    <string name="metric_records">registros</string>
+    <string name="metric_species">especies</string>
+    <string name="metric_groups">grupos</string>
+    <string name="metric_localities">localidades</string>
+    <string name="metric_collectors">colectores</string>
+    <string name="metric_with_gps">con GPS</string>
+    <string name="metric_with_photo">con foto</string>
+    <string name="metric_chao1">especies estimadas (Chao1)</string>
+    <string name="metric_completeness">completitud</string>
+    <string name="metric_shannon">Shannon H′</string>
+    <string name="metric_simpson">Simpson 1−D</string>
+    <string name="metric_pielou">equidad de Pielou J′</string>
+    <string name="metric_singletons">especies con 1 / 2 registros</string>
+    <string name="metric_min">mínima</string>
+    <string name="metric_median">mediana</string>
+    <string name="metric_max">máxima</string>
+    <string name="metric_points">puntos</string>
+    <string name="metric_max_distance">distancia máxima</string>
+    <string name="metric_eoo">EOO</string>
     <string name="search_hint">Buscar especímenes</string>
     <string name="empty_collection">Tu colección está vacía.\nToca «Añadir espécimen» para registrar el primero.</string>
     <string name="no_results">No hay especímenes que coincidan con la búsqueda.</string>
