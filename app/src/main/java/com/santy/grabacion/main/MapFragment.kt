@@ -181,7 +181,7 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
         all.groupingBy { groupOf(it) }.eachCount().entries.sortedByDescending { it.value }.forEach { (group, count) ->
             val color = GroupColors.colorFor(if (group == NO_GROUP) "" else group)
             chips.addView(Chip(requireContext()).apply {
-                text = "$group · $count"
+                text = getString(R.string.chip_count, group, count)
                 isCheckable = true
                 isChecked = group !in hidden
                 chipIcon = GroupColors.markerIcon(context, color)

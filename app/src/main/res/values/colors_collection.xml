@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Paleta de la Colección: tonos del búho (marrón, ocre) con un verde hoja como acento. -->
+<!--
+  Dirección "Etiqueta de colección": papel frío, tinta, grafito y el verde de las etiquetas de
+  colección. El lacre (rojo) se reserva para acciones destructivas.
+-->
 <resources>
-    <color name="owl_primary">#7C4F14</color>
+    <color name="owl_primary">#23664F</color>
     <color name="owl_on_primary">#FFFFFF</color>
-    <color name="owl_primary_container">#FFDDB5</color>
-    <color name="owl_on_primary_container">#2A1700</color>
-    <color name="owl_secondary">#6E5B43</color>
+    <color name="owl_primary_container">#CFE6DC</color>
+    <color name="owl_on_primary_container">#0B2A20</color>
+    <color name="owl_secondary">#56636A</color>
     <color name="owl_on_secondary">#FFFFFF</color>
-    <color name="owl_secondary_container">#F8DEBF</color>
-    <color name="owl_on_secondary_container">#271906</color>
-    <color name="owl_tertiary">#4B6339</color>
+    <color name="owl_secondary_container">#DDE4E6</color>
+    <color name="owl_on_secondary_container">#1E2B2F</color>
+    <color name="owl_tertiary">#23664F</color>
     <color name="owl_on_tertiary">#FFFFFF</color>
-    <color name="owl_tertiary_container">#CDE9B3</color>
-    <color name="owl_on_tertiary_container">#0B2000</color>
-    <color name="owl_background">#FFF8F2</color>
-    <color name="owl_on_background">#211A14</color>
-    <color name="owl_surface">#FFF8F2</color>
-    <color name="owl_on_surface">#211A14</color>
-    <color name="owl_surface_variant">#F1E0D0</color>
-    <color name="owl_on_surface_variant">#50453A</color>
-    <color name="owl_surface_container_low">#FCF1E7</color>
-    <color name="owl_surface_container">#F6EBE1</color>
-    <color name="owl_surface_container_high">#F0E5DB</color>
-    <color name="owl_outline">#837568</color>
-    <color name="owl_outline_variant">#D5C4B5</color>
+    <color name="owl_tertiary_container">#CFE6DC</color>
+    <color name="owl_on_tertiary_container">#0B2A20</color>
+    <color name="owl_error">#A3362A</color>
+    <color name="owl_on_error">#FFFFFF</color>
+    <color name="owl_background">#F5F7F6</color>
+    <color name="owl_on_background">#1E2B2F</color>
+    <color name="owl_surface">#F5F7F6</color>
+    <color name="owl_on_surface">#1E2B2F</color>
+    <color name="owl_surface_variant">#E9EEEC</color>
+    <color name="owl_on_surface_variant">#56636A</color>
+    <!-- La etiqueta es blanca sobre el papel, como la cartulina sobre el cajón. -->
+    <color name="owl_label">#FFFFFF</color>
+    <color name="owl_surface_container_low">#EFF3F1</color>
+    <color name="owl_surface_container">#E9EEEC</color>
+    <color name="owl_surface_container_high">#E2E8E6</color>
+    <color name="owl_outline">#7D8B90</color>
+    <color name="owl_outline_variant">#C8D1D3</color>
 </resources>

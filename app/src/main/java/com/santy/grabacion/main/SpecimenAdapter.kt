@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -28,10 +27,13 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val thumb: ImageView = view.findViewById(R.id.thumb)
         val code: TextView = view.findViewById(R.id.code)
+        val groupRule: View = view.findViewById(R.id.groupRule)
         val group: TextView? = view.findViewById(R.id.group)
         val date: TextView = view.findViewById(R.id.date)
         val scientific: TextView = view.findViewById(R.id.scientificName)
-        val subtitle: TextView = view.findViewById(R.id.subtitle)
+        val commonName: TextView = view.findViewById(R.id.commonName)
+        val locality: TextView? = view.findViewById(R.id.locality)
+        val locationIcon: View? = view.findViewById(R.id.locationIcon)
     }
 
     override fun getItemViewType(position: Int) = if (grid) VIEW_GRID else VIEW_LIST
@@ -51,15 +53,19 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
         val specimen = getItem(position)
         val context = holder.itemView.context
         holder.code.text = specimen.catalogCode
-        holder.code.background = ContextCompat.getDrawable(context, R.drawable.bg_code)?.mutate()?.apply {
-            setTint(GroupColors.colorFor(specimen.group))
-        }
+        holder.groupRule.setBackgroundColor(GroupColors.colorFor(specimen.group))
         holder.group?.text = specimen.group
         holder.date.text = specimen.collectedOn
         holder.scientific.text = specimen.scientificName
-        val place = if (specimen.hasLocation) "📍 ${specimen.locality}".trimEnd() else specimen.locality
-        holder.subtitle.text = listOf(specimen.commonName, place).filter { it.isNotBlank() }.joinToString(" · ")
-        holder.subtitle.visibility = if (holder.subtitle.text.isEmpty()) View.GONE else View.VISIBLE
+        holder.commonName.text = specimen.commonName
+        holder.commonName.visibility = if (specimen.commonName.isBlank()) View.GONE else View.VISIBLE
+        holder.locality?.text = specimen.locality.ifBlank { context.getString(R.string.no_locality) }
+        // El icono de ubicación solo aparece si el registro tiene coordenadas GPS.
+        holder.locationIcon?.visibility = if (specimen.hasLocation) View.VISIBLE else View.GONE
+        holder.itemView.contentDescription = listOf(
+            specimen.catalogCode, specimen.scientificName, specimen.commonName, specimen.group,
+            specimen.locality, specimen.collectedOn,
+        ).filter { it.isNotBlank() }.joinToString(", ")
         val photo = specimen.photo
         if (photo == null) {
             Glide.with(holder.thumb).clear(holder.thumb)

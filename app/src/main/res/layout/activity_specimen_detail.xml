@@ -30,7 +30,31 @@
                 android:importantForAccessibility="no"
                 android:scaleType="centerCrop"
                 android:visibility="gone"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Owl.Thumb" />
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Owl.Small" />
+
+            <!-- Etiqueta de identificación: código, grupo y nombres, con el filete del grupo arriba. -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Owl.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <View
+                android:id="@+id/groupRule"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -42,11 +66,9 @@
                     android:id="@+id/code"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.Owl.Code"
+                    android:textIsSelectable="true"
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/group"
@@ -59,18 +81,23 @@
 
             <TextView
                 android:id="@+id/scientificName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textStyle="italic" />
+                android:textAppearance="@style/TextAppearance.Owl.Binomial"
+                android:textIsSelectable="true"
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/commonName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:id="@+id/locationSection"

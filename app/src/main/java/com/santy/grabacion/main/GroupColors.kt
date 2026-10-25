@@ -12,18 +12,18 @@ import java.util.Locale
 
 /** Color estable por grupo taxonómico, igual en la lista, la ficha, las gráficas y el mapa. */
 object GroupColors {
-    // Paleta de 10 tonos distinguibles entre sí y legibles sobre fondo claro y oscuro.
+    // Paleta de 10 tonos distinguibles; todos superan contraste 4.5:1 con texto blanco.
     private val palette = intArrayOf(
-        0xFFC0752B.toInt(), // ocre
+        0xFFA35F1F.toInt(), // ocre
         0xFF2E7D5B.toInt(), // verde bosque
         0xFF3F6DB5.toInt(), // azul
         0xFFB23A48.toInt(), // carmín
         0xFF7B5EA7.toInt(), // violeta
-        0xFF1C8C9E.toInt(), // turquesa
-        0xFF8A6D1F.toInt(), // oliva
-        0xFFD0577F.toInt(), // rosa
+        0xFF176F7D.toInt(), // turquesa
+        0xFF7A5F14.toInt(), // oliva
+        0xFFB03F67.toInt(), // rosa
         0xFF5B6B7A.toInt(), // pizarra
-        0xFF6E8B3D.toInt(), // musgo
+        0xFF4F6B26.toInt(), // musgo
     )
 
     // Grupos frecuentes con color fijo; el resto se asigna por el nombre.
@@ -35,7 +35,7 @@ object GroupColors {
 
     fun colorFor(group: String): Int {
         val key = group.trim().lowercase(Locale.ROOT)
-        if (key.isEmpty()) return 0xFF8D8D8D.toInt()
+        if (key.isEmpty()) return 0xFF6B6B6B.toInt()
         val index = known[key] ?: Math.floorMod(key.hashCode(), palette.size)
         return palette[index]
     }

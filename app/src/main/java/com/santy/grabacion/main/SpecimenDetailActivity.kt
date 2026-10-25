@@ -79,12 +79,8 @@ class SpecimenDetailActivity : AppCompatActivity() {
 
     private fun show(specimen: Specimen) {
         toolbar.title = specimen.catalogCode
-        findViewById<TextView>(R.id.code).apply {
-            text = specimen.catalogCode
-            background = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.bg_code)?.mutate()?.apply {
-                setTint(GroupColors.colorFor(specimen.group))
-            }
-        }
+        findViewById<TextView>(R.id.code).text = specimen.catalogCode
+        findViewById<View>(R.id.groupRule).setBackgroundColor(GroupColors.colorFor(specimen.group))
         findViewById<TextView>(R.id.group).text = specimen.group
         findViewById<TextView>(R.id.scientificName).text = specimen.scientificName
         findViewById<TextView>(R.id.commonName).apply {

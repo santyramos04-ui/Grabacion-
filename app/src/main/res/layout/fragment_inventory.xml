@@ -56,7 +56,8 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        app:cardBackgroundColor="?attr/colorPrimaryContainer">
+        android:contentDescription="@string/stats_title"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
         <LinearLayout
             android:id="@+id/summary"

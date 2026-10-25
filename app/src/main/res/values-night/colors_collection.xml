@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modo oscuro: el fondo es el mismo gris azulado del icono. -->
+<!-- Modo oscuro: archivo de noche, tinta clara sobre cartón oscuro. -->
 <resources>
-    <color name="owl_primary">#EDBB7C</color>
-    <color name="owl_on_primary">#452B00</color>
-    <color name="owl_primary_container">#623F0E</color>
-    <color name="owl_on_primary_container">#FFDDB5</color>
-    <color name="owl_secondary">#DBC2A4</color>
-    <color name="owl_on_secondary">#3D2E18</color>
-    <color name="owl_secondary_container">#55442D</color>
-    <color name="owl_on_secondary_container">#F8DEBF</color>
-    <color name="owl_tertiary">#B1CD98</color>
-    <color name="owl_on_tertiary">#1E360E</color>
-    <color name="owl_tertiary_container">#344B23</color>
-    <color name="owl_on_tertiary_container">#CDE9B3</color>
-    <color name="owl_background">#15171C</color>
-    <color name="owl_on_background">#ECE1D7</color>
-    <color name="owl_surface">#15171C</color>
-    <color name="owl_on_surface">#ECE1D7</color>
-    <color name="owl_surface_variant">#3A3530</color>
-    <color name="owl_on_surface_variant">#D5C4B5</color>
-    <color name="owl_surface_container_low">#1B1D23</color>
-    <color name="owl_surface_container">#202229</color>
-    <color name="owl_surface_container_high">#2A2C33</color>
-    <color name="owl_outline">#9D8F82</color>
-    <color name="owl_outline_variant">#50453A</color>
+    <color name="owl_primary">#8ACDB2</color>
+    <color name="owl_on_primary">#00382A</color>
+    <color name="owl_primary_container">#1D4F3F</color>
+    <color name="owl_on_primary_container">#C6EFDF</color>
+    <color name="owl_secondary">#A7B4B7</color>
+    <color name="owl_on_secondary">#1E2B2F</color>
+    <color name="owl_secondary_container">#2C383B</color>
+    <color name="owl_on_secondary_container">#DDE4E6</color>
+    <color name="owl_tertiary">#8ACDB2</color>
+    <color name="owl_on_tertiary">#00382A</color>
+    <color name="owl_tertiary_container">#1D4F3F</color>
+    <color name="owl_on_tertiary_container">#C6EFDF</color>
+    <color name="owl_error">#FFB4A8</color>
+    <color name="owl_on_error">#5F150D</color>
+    <color name="owl_background">#111819</color>
+    <color name="owl_on_background">#E2E9E7</color>
+    <color name="owl_surface">#111819</color>
+    <color name="owl_on_surface">#E2E9E7</color>
+    <color name="owl_surface_variant">#1F2A2C</color>
+    <color name="owl_on_surface_variant">#A7B4B7</color>
+    <color name="owl_label">#182123</color>
+    <color name="owl_surface_container_low">#151D1F</color>
+    <color name="owl_surface_container">#1F2A2C</color>
+    <color name="owl_surface_container_high">#263235</color>
+    <color name="owl_outline">#74838A</color>
+    <color name="owl_outline_variant">#3A4649</color>
 </resources>

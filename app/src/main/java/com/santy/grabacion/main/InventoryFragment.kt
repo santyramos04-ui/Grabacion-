@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import com.google.android.material.color.MaterialColors
 import com.santy.grabacion.R
 import com.santy.grabacion.gate.Destinations
 import com.santy.grabacion.gate.UnlockTrigger
@@ -117,7 +116,6 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
 
     private fun showSummary(stats: CollectionStats) {
         summary.removeAllViews()
-        val color = MaterialColors.getColor(summary, com.google.android.material.R.attr.colorOnPrimaryContainer)
         listOf(
             stats.total to R.string.metric_records,
             stats.species to R.string.metric_species,
@@ -128,12 +126,8 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
             metric.findViewById<TextView>(R.id.value).apply {
                 text = value.toString()
                 textSize = 20f
-                setTextColor(color)
             }
-            metric.findViewById<TextView>(R.id.label).apply {
-                setText(label)
-                setTextColor(color)
-            }
+            metric.findViewById<TextView>(R.id.label).setText(label)
             summary.addView(metric)
         }
     }
@@ -157,7 +151,9 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
             tag = group
         }
         chips.addView(chip(getString(R.string.filter_all), null, null))
-        groups.forEach { (group, count) -> chips.addView(chip("$group · $count", group, GroupColors.colorFor(group))) }
+        groups.forEach { (group, count) ->
+            chips.addView(chip(getString(R.string.chip_count, group, count), group, GroupColors.colorFor(group)))
+        }
         chips.setOnCheckedStateChangeListener { group, checkedIds ->
             groupFilter = checkedIds.firstOrNull()?.let { group.findViewById<Chip>(it).tag as String? }
             reload()
