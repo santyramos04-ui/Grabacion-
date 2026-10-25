@@ -106,7 +106,7 @@ object CollectionExport {
                 specimens.filter { it.hasLocation && it.group.ifBlank { "Sin grupo" } == group }.forEach { s ->
                     append("<Placemark><name>${xml(s.catalogCode)} ${xml(s.scientificName)}</name>")
                     append("<styleUrl>#g$i</styleUrl><description>${xml(
-                        listOf(s.commonName, s.collectedOn, s.locality, s.collector, s.notes).filter { it.isNotBlank() }.joinToString(" · ")
+                        listOf(s.commonName, s.collectedOn, s.locality, s.collector, s.notes).filter { it.isNotBlank() }.joinToString("; ")
                     )}</description>")
                     append("<Point><coordinates>${coord(s.longitude!!)},${coord(s.latitude!!)},${s.altitude?.let { Math.round(it) } ?: 0}</coordinates></Point></Placemark>\n")
                 }

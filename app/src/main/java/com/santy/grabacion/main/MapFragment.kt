@@ -207,8 +207,11 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
         if (showHull && geo != null && geo.hull.size >= 3) {
             map.overlays.add(Polygon(map).apply {
                 setPoints(geo.hull.map { GeoPoint(it.first, it.second) } + GeoPoint(geo.hull[0].first, geo.hull[0].second))
-                fillPaint.color = 0x22C0752B
-                outlinePaint.color = 0xFFC0752B.toInt()
+                val primary = com.google.android.material.color.MaterialColors.getColor(
+                    map, com.google.android.material.R.attr.colorPrimary
+                )
+                fillPaint.color = primary and 0x00FFFFFF or 0x26000000
+                outlinePaint.color = primary
                 outlinePaint.strokeWidth = 3 * resources.displayMetrics.density
                 setInfoWindow(null)
             })
@@ -244,7 +247,7 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
         detail.text = listOfNotNull(
             altitude?.let { getString(R.string.map_altitude_range, meters(it.min), meters(it.max)) },
             geo?.let { getString(R.string.map_centroid, coord(it.centroidLat), coord(it.centroidLng)) },
-        ).joinToString(" · ")
+        ).joinToString("\n")
         detail.visibility = if (detail.text.isNullOrEmpty()) View.GONE else View.VISIBLE
     }
 

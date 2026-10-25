@@ -53,6 +53,7 @@
         <item name="textAppearanceLabelMedium">@style/TextAppearance.Owl.LabelMedium</item>
         <item name="textAppearanceLabelSmall">@style/TextAppearance.Owl.LabelSmall</item>
         <item name="materialCardViewStyle">@style/Widget.Owl.Card</item>
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
         <item name="toolbarStyle">@style/Widget.Owl.Toolbar</item>
         <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.Owl.Small</item>
     </style>

@@ -65,6 +65,14 @@
                 android:text="@string/remove_photo"
                 android:visibility="gone" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="@string/section_place"
+                android:textAppearance="@style/TextAppearance.Owl.Section" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/localityLayout"
                 android:layout_width="match_parent"
@@ -117,6 +125,14 @@
                     android:visibility="gone" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="@string/section_identification"
+                android:textAppearance="@style/TextAppearance.Owl.Section" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/commonNameLayout"
                 android:layout_width="match_parent"
@@ -139,7 +155,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="@string/field_scientific_name">
+                android:hint="@string/field_scientific_name_required"
+                app:helperText="@string/required_field"
+                app:helperTextEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/scientificNameInput"
@@ -161,6 +179,14 @@
                     android:layout_height="wrap_content"
                     android:inputType="text|textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="@string/section_collection"
+                android:textAppearance="@style/TextAppearance.Owl.Section" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/dateLayout"
@@ -210,8 +236,8 @@
                 android:id="@+id/saveButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/save" />
+                android:layout_marginTop="24dp"
+                android:text="@string/save_specimen" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

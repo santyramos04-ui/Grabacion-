@@ -48,7 +48,7 @@ class BarListView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             header.addView(TextView(context).apply {
                 val percent = if (total > 0) Math.round(bar.value * 100f / total) else 0
-                text = "${bar.value} · $percent %"
+                text = "${bar.value} ($percent %)"
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             })
             row.addView(header)
@@ -97,7 +97,7 @@ class ColumnChartView @JvmOverloads constructor(context: Context, attrs: Attribu
         barPaint.color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary)
         textPaint.color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant)
         gridPaint.color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOutlineVariant)
-        textPaint.textSize = context.dp(10f)
+        textPaint.textSize = context.dp(12f)
         val labelSpace = context.dp(30f)
         val top = context.dp(16f)
         val chartHeight = height - labelSpace - top
@@ -152,7 +152,7 @@ class LineChartView @JvmOverloads constructor(context: Context, attrs: Attribute
         refPaint.strokeWidth = context.dp(1.5f)
         refPaint.pathEffect = android.graphics.DashPathEffect(floatArrayOf(context.dp(6f), context.dp(4f)), 0f)
         textPaint.color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant)
-        textPaint.textSize = context.dp(10f)
+        textPaint.textSize = context.dp(12f)
 
         val left = context.dp(28f)
         val bottomSpace = context.dp(20f)

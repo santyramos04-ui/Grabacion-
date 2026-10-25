@@ -24,8 +24,10 @@ fun specimenMarker(map: MapView, specimen: Specimen, point: GeoPoint, onOpen: ((
         position = point
         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         icon = GroupColors.markerIcon(map.context, GroupColors.colorFor(specimen.group))
-        title = "${specimen.catalogCode} · ${specimen.scientificName}"
-        snippet = listOf(specimen.commonName, specimen.collectedOn).filter { it.isNotBlank() }.joinToString(" · ")
+        title = specimen.catalogCode
+        snippet = listOf(specimen.scientificName, specimen.commonName, specimen.collectedOn)
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
         setOnMarkerClickListener { marker, _ ->
             if (marker.isInfoWindowShown && onOpen != null) onOpen() else marker.showInfoWindow()
             true

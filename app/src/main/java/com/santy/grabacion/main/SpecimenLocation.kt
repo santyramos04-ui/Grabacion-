@@ -104,7 +104,7 @@ object SpecimenLocation {
             String.format(Locale.US, "%.5f, %.5f", latitude, longitude),
             altitude?.let { String.format(Locale.getDefault(), "%,.0f m s. n. m.", it) },
             accuracy?.let { String.format(Locale.getDefault(), "±%.0f m", it) },
-        ).joinToString(" · ")
+        ).joinToString("\n")
 
     /** Abre la ubicación en la app de mapas del teléfono. */
     fun openInMaps(context: Context, specimen: Specimen) {

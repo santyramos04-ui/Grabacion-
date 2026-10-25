@@ -83,7 +83,7 @@
             android:paddingHorizontal="4dp"
             android:text="@string/map_attribution"
             android:textColor="#333333"
-            android:textSize="10sp" />
+            android:textSize="12sp" />
     </FrameLayout>
 
     <com.google.android.material.card.MaterialCardView

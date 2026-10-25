@@ -36,7 +36,7 @@ class SuggestionAdapter(private val context: Context) : BaseAdapter(), Filterabl
             item.iconicGroup.takeIf { it.isNotBlank() },
             item.nearbyObservations?.let { context.getString(R.string.nearby_observations, INaturalist.format(it)) }
                 ?: context.getString(R.string.global_result),
-        ).joinToString(" · ")
+        ).joinToString(", ")
         return view
     }
 
