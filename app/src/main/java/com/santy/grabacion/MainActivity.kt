@@ -1,7 +1,6 @@
 package com.santy.grabacion
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.MaterialToolbar
@@ -15,7 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableVaultEdgeToEdge()
         super.onCreate(savedInstanceState)
         // Con el vault cerrado (p. ej. al tocar la notificación de grabación) se va al módulo principal.
         if (!VaultGate.isUnlocked(this)) {

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vault, dirección "Visor": grafito casi negro como el interior de una cámara, el ámbar del búho
+  para lo que se puede tocar y el rojo de la luz de grabación reservado a grabar y borrar.
+-->
+<resources>
+    <color name="vault_bg">#0E1013</color>
+    <color name="vault_surface">#16191D</color>
+    <color name="vault_surface_low">#121418</color>
+    <color name="vault_surface_high">#1F2328</color>
+    <color name="vault_surface_highest">#282D33</color>
+    <color name="vault_on_surface">#E8EAEC</color>
+    <color name="vault_on_surface_variant">#9BA4AC</color>
+    <color name="vault_outline">#6B747C</color>
+    <color name="vault_outline_variant">#2E343A</color>
+    <color name="vault_primary">#E0A860</color>
+    <color name="vault_on_primary">#2A1A05</color>
+    <color name="vault_primary_container">#4A3513</color>
+    <color name="vault_on_primary_container">#FBDDB0</color>
+    <color name="vault_secondary_container">#2B3138</color>
+    <color name="vault_on_secondary_container">#DDE3E8</color>
+    <color name="vault_record">#EF4B3F</color>
+    <color name="vault_on_record">#FFFFFF</color>
+    <color name="vault_record_container">#3A1815</color>
+    <color name="vault_black">#000000</color>
+    <color name="vault_scrim">#B3000000</color>
+</resources>

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -36,7 +35,7 @@ class SessionActivity : AppCompatActivity() {
     private val exporter by lazy { VideoExporter(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableVaultEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session)
         findViewById<android.view.View>(R.id.root).applySystemBarPadding()

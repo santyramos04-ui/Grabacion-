@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.media3.common.MediaItem
@@ -27,7 +26,7 @@ class PlayerActivity : AppCompatActivity() {
     private val deleter = MediaDeleter(this) { finish() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableVaultEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
         findViewById<android.view.View>(R.id.root).applySystemBarPadding()

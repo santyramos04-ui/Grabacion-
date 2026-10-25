@@ -7,9 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
-import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +20,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
 
@@ -29,15 +29,15 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
 
     private lateinit var previewView: PreviewView
     private lateinit var statusText: TextView
-    private lateinit var modeGroup: RadioGroup
-    private lateinit var qualityGroup: RadioGroup
+    private lateinit var modeGroup: MaterialButtonToggleGroup
+    private lateinit var qualityGroup: MaterialButtonToggleGroup
     private lateinit var videoOptions: View
     private lateinit var timelapseOptions: View
     private lateinit var audioSwitch: MaterialSwitch
     private lateinit var frontSwitch: MaterialSwitch
     private lateinit var intervalInput: EditText
     private lateinit var maxPhotosInput: EditText
-    private lateinit var startStopButton: Button
+    private lateinit var startStopButton: MaterialButton
 
     private val prefs by lazy { requireContext().getSharedPreferences("ajustes", Context.MODE_PRIVATE) }
     private var cameraProvider: ProcessCameraProvider? = null
@@ -66,7 +66,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         startStopButton = view.findViewById(R.id.startStopButton)
 
         loadSettings()
-        modeGroup.setOnCheckedChangeListener { _, _ -> updateModeOptions() }
+        modeGroup.addOnButtonCheckedListener { _, _, _ -> updateModeOptions() }
         frontSwitch.setOnCheckedChangeListener { _, _ -> updatePreview() }
         startStopButton.setOnClickListener {
             if (CameraService.status.value == CaptureStatus.Idle) startCapture() else stopCapture()
@@ -96,6 +96,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
     private fun render(status: CaptureStatus) {
         val running = status != CaptureStatus.Idle
         startStopButton.setText(if (running) R.string.stop else R.string.start)
+        startStopButton.setIconResource(if (running) R.drawable.vault_ic_stop else R.drawable.vault_ic_record)
         listOf(modeGroup, qualityGroup, audioSwitch, frontSwitch, intervalInput, maxPhotosInput)
             .forEach { it.isEnabled = !running }
         for (i in 0 until modeGroup.childCount) modeGroup.getChildAt(i).isEnabled = !running
@@ -112,7 +113,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
     }
 
     private fun updateModeOptions() {
-        val timelapse = modeGroup.checkedRadioButtonId == R.id.modeTimelapse
+        val timelapse = modeGroup.checkedButtonId == R.id.modeTimelapse
         videoOptions.visibility = if (timelapse) View.GONE else View.VISIBLE
         timelapseOptions.visibility = if (timelapse) View.VISIBLE else View.GONE
     }
@@ -161,7 +162,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         preview = null
 
         val context = requireContext()
-        val timelapse = modeGroup.checkedRadioButtonId == R.id.modeTimelapse
+        val timelapse = modeGroup.checkedButtonId == R.id.modeTimelapse
         val intent = Intent(context, CameraService::class.java).apply {
             action = CameraService.ACTION_START
             putExtra(CameraService.EXTRA_MODE, if (timelapse) CaptureMode.TIMELAPSE.name else CaptureMode.VIDEO.name)
@@ -179,7 +180,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         context.startService(Intent(context, CameraService::class.java).setAction(CameraService.ACTION_STOP))
     }
 
-    private fun selectedQualityName() = when (qualityGroup.checkedRadioButtonId) {
+    private fun selectedQualityName() = when (qualityGroup.checkedButtonId) {
         R.id.qualityHd -> "HD"
         R.id.qualityUhd -> "UHD"
         else -> "FHD"
@@ -215,7 +216,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
 
     private fun saveSettings() {
         prefs.edit()
-            .putBoolean("timelapse", modeGroup.checkedRadioButtonId == R.id.modeTimelapse)
+            .putBoolean("timelapse", modeGroup.checkedButtonId == R.id.modeTimelapse)
             .putString("quality", selectedQualityName())
             .putBoolean("audio", audioSwitch.isChecked)
             .putBoolean("front", frontSwitch.isChecked)

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
+    android:background="@color/vault_bg"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -16,19 +17,24 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000" />
+        android:background="@color/vault_black" />
 
+    <!-- Los controles de edición forman un panel que sube desde abajo, separado del video. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/vault_sheet_bg"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="16dp">
 
         <TextView
             android:id="@+id/trimLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/trim" />
+            android:text="@string/trim"
+            android:textAppearance="@style/TextAppearance.Vault.Timecode" />
 
         <com.google.android.material.slider.RangeSlider
             android:id="@+id/trimSlider"
@@ -46,6 +52,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -53,7 +60,8 @@
                 android:id="@+id/rotationLabel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.Vault.Timecode" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/rotateButton"
@@ -61,15 +69,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/rotate"
-                app:icon="@drawable/ic_rotate"
-                xmlns:app="http://schemas.android.com/apk/res-auto" />
+                app:icon="@drawable/ic_rotate" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:text="@string/save_copy" />
     </LinearLayout>
 </LinearLayout>

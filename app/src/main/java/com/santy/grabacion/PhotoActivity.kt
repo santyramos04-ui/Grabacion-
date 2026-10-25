@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.bumptech.glide.Glide
@@ -24,7 +23,7 @@ class PhotoActivity : AppCompatActivity() {
     private val deleter = MediaDeleter(this) { finish() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableVaultEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo)
         findViewById<android.view.View>(R.id.root).applySystemBarPadding()
