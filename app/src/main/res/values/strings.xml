@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">owl</string>
+    <string name="app_name">OWL</string>
     <string name="mode_video">Video</string>
     <string name="mode_timelapse">Timelapse (fotos)</string>
     <string name="interval_hint">Intervalo entre fotos (segundos)</string>

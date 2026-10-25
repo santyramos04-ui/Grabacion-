@@ -20,18 +20,31 @@
 
             <ImageView
                 android:id="@+id/toolbarLogo"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:background="@null"
                 android:contentDescription="@string/app_name"
                 android:src="@drawable/owl_logo" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/inventory_title"
-                android:textAppearance="?attr/textAppearanceTitleLarge" />
+                android:layout_marginStart="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textAppearance="@style/TextAppearance.Owl.Wordmark"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/inventory_title"
+                    android:textAppearance="?attr/textAppearanceLabelMedium" />
+            </LinearLayout>
         </LinearLayout>
     </com.google.android.material.appbar.MaterialToolbar>
 

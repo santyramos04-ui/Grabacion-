@@ -24,6 +24,9 @@ object VaultGate {
         activity.finish()
     }
 
+    /** Desactiva el flag sin cambiar de pantalla (al abrir la app desde el escritorio). */
+    fun lock(context: Context) = setUnlocked(context, false)
+
     /** Desactiva el flag y vuelve al módulo principal. */
     fun close(activity: Activity) {
         setUnlocked(activity, false)

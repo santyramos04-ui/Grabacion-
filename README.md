@@ -7,6 +7,7 @@ App Android con dos módulos:
   memoria.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
   funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.
+  Al abrir la app desde el escritorio siempre empieza en Colección.
 
 Estructura del código (`app/src/main/java/com/santy/grabacion/`):
 

@@ -3,4 +3,11 @@
         <item name="colorPrimary">#C08A4B</item>
         <item name="colorOnPrimary">#FFFFFF</item>
     </style>
+
+    <!-- Nombre de la app: Roboto Black en mayúsculas. -->
+    <style name="TextAppearance.Owl.Wordmark" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.12</item>
+    </style>
 </resources>
