@@ -4,6 +4,11 @@
         <item name="colorOnPrimary">#FFFFFF</item>
     </style>
 
+    <style name="ShapeAppearance.Owl.Thumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
     <!-- Nombre de la app: Roboto Black en mayúsculas. -->
     <style name="TextAppearance.Owl.Wordmark" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:fontFamily">sans-serif-black</item>

@@ -91,7 +91,16 @@
     <string name="field_notes">Notas</string>
     <string name="save">Guardar</string>
     <string name="required_field">Campo obligatorio</string>
-    <string name="memory_only_hint">Por ahora los especímenes nuevos se guardan solo mientras la app está abierta.</string>
+    <string name="edit_specimen">Editar espécimen</string>
+    <string name="take_photo">Tomar foto</string>
+    <string name="pick_photo">Elegir de la galería</string>
+    <string name="remove_photo">Quitar foto</string>
+    <string name="no_camera_app">No hay una app de cámara disponible</string>
+    <string name="search_hint">Buscar especímenes</string>
+    <string name="empty_collection">Tu colección está vacía.\nToca «Añadir espécimen» para registrar el primero.</string>
+    <string name="no_results">No hay especímenes que coincidan con la búsqueda.</string>
+    <string name="delete_specimen_title">¿Eliminar %s?</string>
+    <string name="delete_specimen_message">Se borrarán el registro y su foto. Esta acción no se puede deshacer.</string>
     <string name="about">Acerca de</string>
     <string name="about_text">Inventario de colección biológica.</string>
 

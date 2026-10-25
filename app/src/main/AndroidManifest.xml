@@ -48,7 +48,7 @@
             android:name=".main.SpecimenDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".main.AddSpecimenActivity"
+            android:name=".main.SpecimenEditActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity

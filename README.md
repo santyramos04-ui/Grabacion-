@@ -2,9 +2,11 @@
 
 App Android con dos módulos:
 
-- **Colección** (módulo principal, se abre siempre): inventario de colección biológica con
-  lista de especímenes, ficha y formulario para añadir. Por ahora usa datos de ejemplo en
-  memoria.
+- **Colección** (módulo principal, se abre siempre): inventario de colección biológica.
+  Los especímenes se guardan en una base de datos local con número de catálogo
+  (`OWL-0001`…), foto (cámara o galería), fecha, localidad, colector y notas; se pueden
+  buscar, editar y eliminar. Las fotos se guardan en el almacenamiento privado de la app,
+  fuera de la galería del teléfono.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
   funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.
   Al abrir la app desde el escritorio siempre empieza en Colección.

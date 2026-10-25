@@ -1,80 +1,121 @@
 package com.santy.grabacion.main
 
-import java.text.SimpleDateFormat
-import java.util.Date
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Locale
-import java.util.UUID
 
 data class Specimen(
-    val id: String,
+    val id: Long = 0,
     val scientificName: String,
-    val commonName: String,
-    val group: String,
+    val commonName: String = "",
+    val group: String = "",
+    /** Fecha de colecta en formato yyyy-MM-dd. */
     val collectedOn: String,
-    val locality: String,
-    val collector: String,
-    val notes: String,
-)
+    val locality: String = "",
+    val collector: String = "",
+    val notes: String = "",
+    /** Nombre del archivo de la foto dentro de [SpecimenPhotos.dir], o null. */
+    val photo: String? = null,
+) {
+    val catalogNumber: String get() = String.format(Locale.US, "OWL-%04d", id)
+}
 
-/**
- * Inventario en memoria con datos de ejemplo. Lo añadido se pierde al cerrar la app;
- * la base de datos llegará en una fase posterior.
- */
-object SpecimenRepository {
-    private val items = mutableListOf(
-        Specimen(
-            "MHN-0001", "Morpho peleides", "Mariposa morfo azul", "Lepidoptera",
-            "2026-03-14", "Reserva Río Claro, Antioquia", "S. Ramos",
-            "Macho adulto, alas completas. Capturado con red entomológica al borde del río."
-        ),
-        Specimen(
-            "MHN-0002", "Dynastes hercules", "Escarabajo hércules", "Coleoptera",
-            "2026-04-02", "Bosque de niebla, Caldas", "S. Ramos",
-            "Macho con cuerno torácico de 4 cm. Montado en alfiler n.º 5."
-        ),
-        Specimen(
-            "MHN-0003", "Atta cephalotes", "Hormiga arriera", "Hymenoptera",
-            "2026-04-19", "Jardín Botánico, Medellín", "S. Ramos",
-            "Serie de 12 obreras en alcohol al 70 %."
-        ),
-        Specimen(
-            "MHN-0004", "Heliconia rostrata", "Platanillo", "Plantae",
-            "2026-05-07", "Vereda La Esperanza, Antioquia", "S. Ramos",
-            "Inflorescencia prensada; bráctea roja con margen amarillo."
-        ),
-        Specimen(
-            "MHN-0005", "Oophaga histrionica", "Rana arlequín", "Amphibia",
-            "2026-06-11", "Chocó biogeográfico", "S. Ramos",
-            "Solo registro fotográfico; especie protegida, no colectada."
-        ),
-        Specimen(
-            "MHN-0006", "Megaphobema robustum", "Tarántula colombiana", "Arachnida",
-            "2026-07-23", "Piedemonte llanero, Meta", "S. Ramos",
-            "Muda completa de hembra subadulta."
-        ),
-        Specimen(
-            "MHN-0007", "Passiflora edulis", "Maracuyá", "Plantae",
-            "2026-08-30", "Finca El Recreo, Valle del Cauca", "S. Ramos",
-            "Rama con flor y fruto inmaduro para herbario."
-        ),
-    )
+/** Base de datos local de la colección (archivo coleccion.db en el almacenamiento privado). */
+private class SpecimenDatabase(context: Context) :
+    SQLiteOpenHelper(context.applicationContext, "coleccion.db", null, 1) {
 
-    fun all(): List<Specimen> = items.sortedByDescending { it.collectedOn }
-
-    fun get(id: String): Specimen? = items.firstOrNull { it.id == id }
-
-    fun add(scientificName: String, commonName: String, group: String, locality: String, notes: String): Specimen {
-        val specimen = Specimen(
-            id = "TMP-" + UUID.randomUUID().toString().take(8).uppercase(Locale.US),
-            scientificName = scientificName,
-            commonName = commonName,
-            group = group,
-            collectedOn = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
-            locality = locality,
-            collector = "",
-            notes = notes,
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE specimens (
+                _id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scientific_name TEXT NOT NULL,
+                common_name TEXT NOT NULL DEFAULT '',
+                group_name TEXT NOT NULL DEFAULT '',
+                collected_on TEXT NOT NULL,
+                locality TEXT NOT NULL DEFAULT '',
+                collector TEXT NOT NULL DEFAULT '',
+                notes TEXT NOT NULL DEFAULT '',
+                photo TEXT,
+                created_at INTEGER NOT NULL
+            )
+            """.trimIndent()
         )
-        items += specimen
-        return specimen
     }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+}
+
+object SpecimenRepository {
+    private const val TABLE = "specimens"
+
+    @Volatile
+    private var database: SpecimenDatabase? = null
+
+    private fun db(context: Context): SQLiteDatabase =
+        (database ?: synchronized(this) {
+            database ?: SpecimenDatabase(context).also { database = it }
+        }).writableDatabase
+
+    /** Todos los especímenes, del más reciente al más antiguo, filtrados por [query] si no está vacío. */
+    suspend fun all(context: Context, query: String = ""): List<Specimen> = withContext(Dispatchers.IO) {
+        val filter = query.trim()
+        val (selection, args) = if (filter.isEmpty()) {
+            null to null
+        } else {
+            val like = "%$filter%"
+            "scientific_name LIKE ? OR common_name LIKE ? OR group_name LIKE ? OR locality LIKE ?" to
+                arrayOf(like, like, like, like)
+        }
+        db(context).query(TABLE, null, selection, args, null, null, "collected_on DESC, _id DESC")
+            .use { cursor -> buildList<Specimen> { while (cursor.moveToNext()) add(cursor.toSpecimen()) } }
+    }
+
+    suspend fun get(context: Context, id: Long): Specimen? = withContext(Dispatchers.IO) {
+        db(context).query(TABLE, null, "_id = ?", arrayOf(id.toString()), null, null, null)
+            .use { if (it.moveToFirst()) it.toSpecimen() else null }
+    }
+
+    /** Inserta si [specimen] no tiene id; si lo tiene, lo actualiza. Devuelve el id. */
+    suspend fun save(context: Context, specimen: Specimen): Long = withContext(Dispatchers.IO) {
+        val values = ContentValues().apply {
+            put("scientific_name", specimen.scientificName)
+            put("common_name", specimen.commonName)
+            put("group_name", specimen.group)
+            put("collected_on", specimen.collectedOn)
+            put("locality", specimen.locality)
+            put("collector", specimen.collector)
+            put("notes", specimen.notes)
+            put("photo", specimen.photo)
+        }
+        if (specimen.id == 0L) {
+            values.put("created_at", System.currentTimeMillis())
+            db(context).insertOrThrow(TABLE, null, values)
+        } else {
+            db(context).update(TABLE, values, "_id = ?", arrayOf(specimen.id.toString()))
+            specimen.id
+        }
+    }
+
+    suspend fun delete(context: Context, specimen: Specimen) = withContext(Dispatchers.IO) {
+        db(context).delete(TABLE, "_id = ?", arrayOf(specimen.id.toString()))
+        SpecimenPhotos.delete(context, specimen.photo)
+    }
+
+    private fun Cursor.toSpecimen() = Specimen(
+        id = getLong(getColumnIndexOrThrow("_id")),
+        scientificName = getString(getColumnIndexOrThrow("scientific_name")),
+        commonName = getString(getColumnIndexOrThrow("common_name")),
+        group = getString(getColumnIndexOrThrow("group_name")),
+        collectedOn = getString(getColumnIndexOrThrow("collected_on")),
+        locality = getString(getColumnIndexOrThrow("locality")),
+        collector = getString(getColumnIndexOrThrow("collector")),
+        notes = getString(getColumnIndexOrThrow("notes")),
+        photo = getString(getColumnIndexOrThrow("photo")),
+    )
 }
