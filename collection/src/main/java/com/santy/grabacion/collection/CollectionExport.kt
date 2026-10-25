@@ -148,6 +148,11 @@ object CollectionExport {
         return "$name.${format.extension}"
     }
 
+    @Suppress("DEPRECATION")
+    private fun webpFormat(): Bitmap.CompressFormat =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) Bitmap.CompressFormat.WEBP_LOSSY
+        else Bitmap.CompressFormat.WEBP
+
     /** Guarda la imagen del mapa en Imágenes/OWL, visible en la galería. */
     suspend fun saveImage(
         context: Context,
@@ -159,9 +164,7 @@ object CollectionExport {
             val compressFormat = when (format) {
                 ImageFormat.PNG -> Bitmap.CompressFormat.PNG
                 ImageFormat.JPEG -> Bitmap.CompressFormat.JPEG
-                ImageFormat.WEBP ->
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) Bitmap.CompressFormat.WEBP_LOSSY
-                    @Suppress("DEPRECATION") else Bitmap.CompressFormat.WEBP
+                ImageFormat.WEBP -> webpFormat()
             }
             val quality = if (format == ImageFormat.PNG) 100 else 92
             bitmap.compress(compressFormat, quality, out)
