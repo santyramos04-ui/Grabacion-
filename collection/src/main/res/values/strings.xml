@@ -81,6 +81,7 @@
     <!-- Editor de exportación del mapa -->
     <string name="map_export_editor_title">Exportar mapa</string>
     <string name="map_export_preview">Vista previa de la imagen</string>
+    <string name="map_export_preview_button">Vista previa</string>
     <string name="map_export_unavailable">No se pudo preparar el mapa para exportar.</string>
     <string name="map_export_ratio">Proporción</string>
     <string name="map_export_ratio_screen">Pantalla</string>
@@ -90,9 +91,26 @@
     <string name="map_export_size_2560">2560 px</string>
     <string name="map_export_size_custom">Personalizado</string>
     <string name="map_export_size_custom_hint">Lado mayor (256–4096)</string>
-    <string name="map_export_dimensions">Dimensiones: %1$d × %2$d px</string>
-    <string name="map_export_detail">Detalle</string>
-    <string name="map_export_detail_value">%1$s</string>
+    <string name="map_export_dimensions">Mapa: %1$d × %2$d px (más título y leyenda)</string>
+    <string name="map_export_hint">Mueve y acerca el mapa del recuadro: se exporta exactamente lo que ves dentro. Mantén pulsado el mapa para marcar un punto.</string>
+    <string name="map_export_fit">Colección</string>
+    <string name="map_export_coordinate">Coordenada</string>
+    <string name="map_export_no_points">La colección no tiene puntos con ubicación.</string>
+    <string name="map_export_center">Centro %1$s, %2$s · zoom %3$s</string>
+    <string name="map_export_pin">Punto marcado %1$s, %2$s</string>
+    <string name="map_export_pin_line">Punto: %1$s, %2$s</string>
+    <string name="map_export_coordinate_title">Ir a una coordenada</string>
+    <string name="map_export_coordinate_message">Escribe latitud y longitud en grados decimales, por ejemplo: -0.22010, -78.51230</string>
+    <string name="map_export_coordinate_hint">Latitud, longitud</string>
+    <string name="map_export_coordinate_go">Ir</string>
+    <string name="map_export_coordinate_clear">Quitar punto</string>
+    <string name="map_export_coordinate_invalid">Coordenada no válida: latitud de −90 a 90 y longitud de −180 a 180.</string>
+    <string name="map_export_layer">Capa</string>
+    <string name="map_export_layer_standard">Estándar</string>
+    <string name="map_export_layer_topo">Topográfica</string>
+    <string name="map_export_layer_satellite">Satelital</string>
+    <string name="map_export_rendering">Preparando la imagen…</string>
+    <string name="map_export_too_big">La imagen es demasiado grande para la memoria del teléfono. Prueba un tamaño menor.</string>
     <string name="map_export_format">Formato</string>
     <string name="map_export_name">Nombre del archivo</string>
     <string name="map_export_save">Guardar</string>

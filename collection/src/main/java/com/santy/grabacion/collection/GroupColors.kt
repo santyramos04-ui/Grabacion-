@@ -40,9 +40,9 @@ object GroupColors {
         return palette[index]
     }
 
-    /** Alfiler del mapa con el color del grupo y borde blanco. */
-    fun markerIcon(context: Context, color: Int): Drawable {
-        val density = context.resources.displayMetrics.density
+    /** Alfiler del mapa con el color del grupo y borde blanco; [scale] lo agranda al exportar. */
+    fun markerIcon(context: Context, color: Int, scale: Float = 1f): Drawable {
+        val density = context.resources.displayMetrics.density * scale
         val width = (26 * density).toInt()
         val height = (36 * density).toInt()
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

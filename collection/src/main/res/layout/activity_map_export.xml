@@ -14,48 +14,151 @@
         app:navigationIcon="@drawable/ic_back"
         app:title="@string/map_export_editor_title" />
 
+    <!-- Recuadro de encuadre: un mapa real que se mueve y acerca; se exporta lo que hay dentro. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceContainerHigh"
+        android:padding="8dp">
+
+        <com.santy.grabacion.collection.AspectFrameLayout
+            android:id="@+id/frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <org.osmdroid.views.MapView
+                android:id="@+id/frameMap"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/frameAttribution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:background="#AAFFFFFF"
+                android:paddingHorizontal="4dp"
+                android:textColor="#333333"
+                android:textSize="10sp" />
+
+            <LinearLayout
+                android:id="@+id/renderScrim"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/colorSurfaceContainerHigh"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/map_export_rendering"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </LinearLayout>
+        </com.santy.grabacion.collection.AspectFrameLayout>
+    </FrameLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/fitButton"
+                style="@style/Widget.Material3.Button.TonalButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/map_export_fit"
+                app:icon="@drawable/ic_fit" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/coordinateButton"
+                style="@style/Widget.Material3.Button.TonalButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/map_export_coordinate"
+                app:icon="@drawable/ic_my_location" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/previewButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/map_export_preview_button" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <TextView
+        android:id="@+id/centerLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="4dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp">
 
-            <FrameLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/colorSurfaceContainerHigh"
-                android:minHeight="200dp">
-
-                <ImageView
-                    android:id="@+id/preview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:adjustViewBounds="true"
-                    android:contentDescription="@string/map_export_preview"
-                    android:maxHeight="320dp"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter" />
-
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/previewProgress"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:indeterminate="true"
-                    android:visibility="gone" />
-            </FrameLayout>
+                android:layout_marginTop="8dp"
+                android:text="@string/map_export_hint"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/map_export_layer"
+                android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/layerGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip android:id="@+id/layerStandard" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/map_export_layer_standard" />
+                <com.google.android.material.chip.Chip android:id="@+id/layerTopo" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/map_export_layer_topo" />
+                <com.google.android.material.chip.Chip android:id="@+id/layerSatellite" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/map_export_layer_satellite" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:text="@string/map_export_ratio"
                 android:textAppearance="?attr/textAppearanceTitleSmall" />
 
@@ -76,7 +179,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:text="@string/map_export_size"
                 android:textAppearance="?attr/textAppearanceTitleSmall" />
 
@@ -118,50 +221,10 @@
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/map_export_detail"
-                    android:textAppearance="?attr/textAppearanceTitleSmall" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/detailLess"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="−" />
-
-                <TextView
-                    android:id="@+id/detailLabel"
-                    android:layout_width="56dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textAppearance="?attr/textAppearanceBodyMedium" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/detailMore"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="+" />
-            </LinearLayout>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:text="@string/map_export_format"
                 android:textAppearance="?attr/textAppearanceTitleSmall" />
 
@@ -180,7 +243,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:hint="@string/map_export_name">
 
                 <com.google.android.material.textfield.TextInputEditText
