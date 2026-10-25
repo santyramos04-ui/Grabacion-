@@ -129,6 +129,28 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
+                            android:text="@string/ratio"
+                            android:textAppearance="@style/TextAppearance.Vault.Section" />
+
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/ratioGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/ratio_hint"
+                            android:textAppearance="@style/TextAppearance.Vault.Hint" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
                             android:text="@string/quality"
                             android:textAppearance="@style/TextAppearance.Vault.Section" />
 

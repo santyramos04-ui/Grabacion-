@@ -153,9 +153,11 @@ class CameraService : LifecycleService() {
      * (HDR, fps, estabilización) no se puede usar, vuelve a la configuración básica.
      */
     private fun buildVideoCapture(info: androidx.camera.core.CameraInfo?, advanced: Boolean): VideoCapture<Recorder> {
-        val recorderBuilder = Recorder.Builder().setQualitySelector(
-            QualitySelector.from(settings.quality.toCameraX(), FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
-        )
+        val recorderBuilder = Recorder.Builder()
+            .setAspectRatio(settings.aspectRatio.toCameraX())
+            .setQualitySelector(
+                QualitySelector.from(settings.quality.toCameraX(), FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
+            )
         if (advanced) settings.targetBitrate()?.let { recorderBuilder.setTargetVideoEncodingBitRate(it) }
         val builder = VideoCapture.Builder(recorderBuilder.build())
         if (advanced && info != null) {

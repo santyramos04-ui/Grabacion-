@@ -60,6 +60,8 @@
     <string name="format_sdr">MP4</string>
     <string name="format_hdr">MP4 HDR</string>
     <string name="format_hint">MP4 normal (H.264) funciona en todos los dispositivos. HDR (10 bits, HEVC) solo aparece si tu cámara lo admite.</string>
+    <string name="ratio">Proporción</string>
+    <string name="ratio_hint">16:9 es apaisado; 4:3 es más cuadrado. El cuadrado (1:1) y el panorámico no los graba la cámara.</string>
     <string name="format_hint_no_hdr">Tu cámara no admite HDR: se graba en MP4 normal (H.264).</string>
     <string name="frame_rate">Fotogramas por segundo</string>
     <string name="frame_rate_auto">Auto</string>

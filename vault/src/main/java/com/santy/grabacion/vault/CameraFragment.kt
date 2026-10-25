@@ -37,6 +37,7 @@ import com.santy.grabacion.recorder.RecordingController
 import com.santy.grabacion.recorder.RecordingSettings
 import com.santy.grabacion.recorder.RecordingSettingsStore
 import com.santy.grabacion.recorder.VideoFormat
+import com.santy.grabacion.recorder.VideoRatio
 import com.santy.grabacion.recorder.VideoQuality
 import com.santy.grabacion.recorder.isPaused
 import kotlinx.coroutines.Job
@@ -53,6 +54,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
     private lateinit var modeGroup: MaterialButtonToggleGroup
     private lateinit var durationChips: ChipGroup
     private lateinit var formatGroup: MaterialButtonToggleGroup
+    private lateinit var ratioGroup: MaterialButtonToggleGroup
     private lateinit var formatHint: TextView
     private lateinit var qualityGroup: MaterialButtonToggleGroup
     private lateinit var fpsGroup: MaterialButtonToggleGroup
@@ -96,6 +98,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         formatGroup = view.findViewById(R.id.formatGroup)
         formatHint = view.findViewById(R.id.formatHint)
         qualityGroup = view.findViewById(R.id.qualityGroup)
+        ratioGroup = view.findViewById(R.id.ratioGroup)
         fpsGroup = view.findViewById(R.id.fpsGroup)
         bitrateGroup = view.findViewById(R.id.bitrateGroup)
         videoOptions = view.findViewById(R.id.videoOptions)
@@ -115,6 +118,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         bindDurationChips()
         bindBitrate()
         bindFormat()
+        bindRatio()
         refreshCapabilities()
 
         modeGroup.addOnButtonCheckedListener { _, _, _ -> updateModeOptions() }
@@ -234,6 +238,14 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         }
     }
 
+    private fun bindRatio() {
+        fillSegments(
+            ratioGroup,
+            VideoRatio.entries.map { it to it.label },
+            settings.aspectRatio,
+        ) { update { copy(aspectRatio = it) } }
+    }
+
     private fun bindBitrate() {
         fillSegments(
             bitrateGroup,
@@ -330,11 +342,11 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         pauseButton.setText(if (paused) R.string.resume else R.string.pause)
 
         val controls = listOf(
-            modeGroup, durationChips, formatGroup, qualityGroup, fpsGroup, bitrateGroup,
+            modeGroup, durationChips, formatGroup, ratioGroup, qualityGroup, fpsGroup, bitrateGroup,
             audioSwitch, frontSwitch, stabilizationSwitch, torchSwitch, intervalInput, maxPhotosInput,
         )
         controls.forEach { it.isEnabled = !running }
-        listOf(modeGroup, durationChips, formatGroup, qualityGroup, fpsGroup, bitrateGroup).forEach { group ->
+        listOf(modeGroup, durationChips, formatGroup, ratioGroup, qualityGroup, fpsGroup, bitrateGroup).forEach { group ->
             for (i in 0 until group.childCount) group.getChildAt(i).isEnabled = !running
         }
         if (!running) capabilities?.let { applyCapabilities(it) }

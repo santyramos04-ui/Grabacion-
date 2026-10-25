@@ -2,6 +2,18 @@ package com.santy.grabacion.recorder
 
 import android.content.Context
 import android.os.Bundle
+import androidx.camera.core.AspectRatio
+
+/**
+ * Proporción (forma) del video. Android solo graba de forma nativa estas dos; el cuadrado o el
+ * panorámico no los produce la cámara, requerirían recortar después.
+ */
+enum class VideoRatio(val label: String) {
+    RATIO_16_9("16:9"),
+    RATIO_4_3("4:3");
+
+    fun toCameraX(): Int = if (this == RATIO_16_9) AspectRatio.RATIO_16_9 else AspectRatio.RATIO_4_3
+}
 
 /** Formato del video. CameraX siempre produce MP4; lo que cambia es el rango dinámico y el códec. */
 enum class VideoFormat {
@@ -26,6 +38,7 @@ data class RecordingSettings(
     /** Duración máxima en minutos de grabación real (sin contar pausas); 0 = sin límite. */
     val durationMinutes: Int = 0,
     val format: VideoFormat = VideoFormat.MP4_SDR,
+    val aspectRatio: VideoRatio = VideoRatio.RATIO_16_9,
     val quality: VideoQuality = VideoQuality.FHD,
     /** Fotogramas por segundo; 0 = automático. */
     val frameRate: Int = 0,
@@ -59,6 +72,7 @@ data class RecordingSettings(
     fun toBundle() = Bundle().apply {
         putInt(KEY_DURATION, durationMinutes)
         putString(KEY_FORMAT, format.name)
+        putString(KEY_RATIO, aspectRatio.name)
         putString(KEY_QUALITY, quality.name)
         putInt(KEY_FPS, frameRate)
         putBoolean(KEY_STABILIZATION, stabilization)
@@ -74,6 +88,7 @@ data class RecordingSettings(
 
         private const val KEY_DURATION = "duracion_min"
         private const val KEY_FORMAT = "formato"
+        private const val KEY_RATIO = "proporcion"
         private const val KEY_QUALITY = "calidad"
         private const val KEY_FPS = "fps"
         private const val KEY_STABILIZATION = "estabilizacion"
@@ -88,6 +103,7 @@ data class RecordingSettings(
             return RecordingSettings(
                 durationMinutes = bundle.getInt(KEY_DURATION, defaults.durationMinutes).coerceAtLeast(0),
                 format = enumOr(bundle.getString(KEY_FORMAT), defaults.format),
+                aspectRatio = enumOr(bundle.getString(KEY_RATIO), defaults.aspectRatio),
                 quality = enumOr(bundle.getString(KEY_QUALITY), defaults.quality),
                 frameRate = bundle.getInt(KEY_FPS, defaults.frameRate),
                 stabilization = bundle.getBoolean(KEY_STABILIZATION, defaults.stabilization),
