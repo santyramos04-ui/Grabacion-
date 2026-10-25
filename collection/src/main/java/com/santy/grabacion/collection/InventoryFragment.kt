@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
@@ -14,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import com.santy.grabacion.core.UnlockTrigger
-import com.santy.grabacion.core.VaultGate
+import com.santy.grabacion.core.TapSequenceDetector
+import com.santy.grabacion.core.TapSequenceLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -39,6 +40,16 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
     private var groupFilter: String? = null
     private var loadJob: Job? = null
     private val exporter = ExportController(this, { filtered(SpecimenRepository.all(requireContext(), searchQuery)) })
+    private val recordingTrigger = CollectionRecordingTrigger(this)
+
+    /** Cinco toques rápidos en la misma zona de esta pantalla inician la grabación en segundo plano. */
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val content = super.onCreateView(inflater, container, savedInstanceState)!!
+        return TapSequenceLayout(requireContext()).apply {
+            addView(content)
+            detector = TapSequenceDetector(requireContext()) { recordingTrigger.onSequence() }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         list = view.findViewById(R.id.list)
@@ -71,7 +82,6 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
                 }
             })
         }
-        UnlockTrigger.attach(view.findViewById(R.id.toolbarLogo)) { VaultGate.unlock(requireActivity()) }
 
         list.adapter = adapter
         setGrid(prefs().getBoolean(KEY_GRID, false))
