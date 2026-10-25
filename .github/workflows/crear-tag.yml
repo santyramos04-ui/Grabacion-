@@ -2,6 +2,10 @@ name: Crear tag
 
 # Crea un tag en un commit concreto. Se lanza a mano (Actions → Crear tag → Run workflow).
 on:
+  # El push solo registra el workflow en GitHub; el trabajo se salta.
+  push:
+    paths:
+      - .github/workflows/crear-tag.yml
   workflow_dispatch:
     inputs:
       tag:
@@ -16,6 +20,7 @@ permissions:
 
 jobs:
   tag:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
