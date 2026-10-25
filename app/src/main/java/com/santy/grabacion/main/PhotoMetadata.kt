@@ -43,7 +43,12 @@ object PhotoMetadata {
             val date = rawDate?.takeIf { Regex("""\d{4}:\d{2}:\d{2}.*""").matches(it) }
                 ?.substring(0, 10)?.replace(':', '-')
                 ?.takeUnless { it.startsWith("0000") }
-            val latLong = exif.latLong?.takeUnless { it[0] == 0.0 && it[1] == 0.0 }
+            val coordinates = FloatArray(2)
+            val latLong = if (exif.getLatLong(coordinates) && !(coordinates[0] == 0f && coordinates[1] == 0f)) {
+                doubleArrayOf(coordinates[0].toDouble(), coordinates[1].toDouble())
+            } else {
+                null
+            }
             val altitude = if (exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE) != null) {
                 exif.getAltitude(Double.NaN).takeUnless { it.isNaN() }
             } else {
