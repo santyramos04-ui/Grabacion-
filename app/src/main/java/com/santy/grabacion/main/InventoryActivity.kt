@@ -25,7 +25,7 @@ class InventoryActivity : AppCompatActivity() {
 
     private val adapter = SpecimenAdapter { startActivity(Destinations.specimen(this, it.id)) }
     private lateinit var emptyText: TextView
-    private var query = ""
+    private var searchQuery = ""
     private var loadJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +50,7 @@ class InventoryActivity : AppCompatActivity() {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String) = false
                 override fun onQueryTextChange(text: String): Boolean {
-                    query = text
+                    searchQuery = text
                     reload()
                     return true
                 }
@@ -78,10 +78,10 @@ class InventoryActivity : AppCompatActivity() {
     private fun reload() {
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {
-            val specimens = SpecimenRepository.all(this@InventoryActivity, query)
+            val specimens = SpecimenRepository.all(this@InventoryActivity, searchQuery)
             adapter.submitList(specimens)
             emptyText.visibility = if (specimens.isEmpty()) View.VISIBLE else View.GONE
-            emptyText.setText(if (query.isBlank()) R.string.empty_collection else R.string.no_results)
+            emptyText.setText(if (searchQuery.isBlank()) R.string.empty_collection else R.string.no_results)
         }
     }
 }
