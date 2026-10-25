@@ -14,27 +14,28 @@ App Android con dos módulos:
   sugerencias buscan especies observadas a menos de 30 km. La ficha muestra el punto en un
   mapa de [OpenStreetMap](https://www.openstreetmap.org).
   - **Mapa de la colección**: marcadores con el color de cada grupo, filtro por grupo, capa
-    estándar o topográfica, polígono de extensión de presencia (EOO) y resumen de puntos,
+    estándar, topográfica o **satelital** (botón rápido que no mueve el mapa), punto de
+    ubicación pequeño que late suavemente, polígono de extensión de presencia (EOO) y resumen de puntos,
     especies, área y altitud.
   - **Estadísticas**: riqueza observada y estimada (Chao1), completitud, Shannon, Simpson,
     Pielou, curva de acumulación de especies, registros por grupo, especie, mes, altitud y
     localidad, y distribución geográfica.
   - **Exportar**: CSV con columnas Darwin Core (Excel, GBIF), GeoJSON (QGIS), KML (Google
-    Earth) e imagen del mapa con leyenda. Los archivos se guardan en `Descargas/OWL` (la
+    Earth) e imagen del mapa con leyenda. La imagen pasa por un editor: proporción, tamaño
+    (hasta 4096 px), detalle, formato (PNG, JPEG, WebP), nombre y vista previa. Los archivos se guardan en `Descargas/OWL` (la
     imagen en `Imágenes/OWL`) y después se pueden compartir o abrir.
   - Barra inferior con Colección, Mapa, **Añadir** (botón central), Estadísticas y Ajustes.
     El inventario se ve como lista o como galería.
   - Al elegir una foto de la galería se leen su fecha y coordenadas (EXIF). Las fotos se guardan en el almacenamiento privado de la app,
   fuera de la galería del teléfono.
-- **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
-  funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.
-  Al abrir la app desde el escritorio siempre empieza en Colección.
+- **Vault**: la app de cámara en segundo plano descrita abajo. Se entra con **5 toques
+  rápidos en Colección → Ajustes** y se sale con *Cerrar vault*. Al abrir la app desde el
+  escritorio siempre empieza en Colección.
+- **5 toques rápidos en la pantalla principal de la Colección** inician el video en segundo
+  plano con los ajustes del vault, sin entrar al vault.
 
-Estructura del código (`app/src/main/java/com/santy/grabacion/`):
-
-- `gate/`: pantalla de inicio, gesto de desbloqueo, estado del vault y destinos.
-- `main/`: módulo principal (inventario).
-- El resto de archivos de ese paquete: el vault.
+Estructura del código: módulos `core`, `recorder`, `vault`, `collection` y `app`. Ver
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Vault: cámara en segundo plano
 
@@ -46,10 +47,13 @@ pantalla bloqueada, etc.).
 El vault tiene tres pestañas abajo:
 
 - **Cámara**
-  - Video en 720p, 1080p o 4K, con o sin audio.
+  - Video con duración (sin límite, 1, 2, 5, 10 min o personalizada), formato (MP4 o MP4
+    HDR si la cámara lo admite), calidad, fps, estabilización, tasa de bits, audio,
+    cámara y linterna. Solo se ofrece lo que admite el teléfono; se guarda entre sesiones.
+  - Pausar, reanudar y finalizar; la duración cuenta solo el tiempo grabado.
   - Timelapse: una foto cada N segundos, con límite opcional de fotos.
   - Cámara trasera o frontal, vista previa para encuadrar.
-  - Notificación permanente con cronómetro y botón **Detener**.
+  - Notificación discreta «Procesando» con botones **Pausar/Reanudar** y **Finalizar**.
 - **Galería**
   - *Videos*: reproduce, edita, comparte o elimina lo que grabaste.
   - *Timelapses*: cada sesión de fotos; ábrela para ver las fotos, compartirlas,
