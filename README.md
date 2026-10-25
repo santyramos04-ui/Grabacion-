@@ -1,11 +1,27 @@
 # owl
 
-App Android para usar la cámara **en segundo plano**: graba video o toma fotos en
-**timelapse** mientras sigues usando el teléfono (otras apps, pantalla bloqueada, etc.).
+App Android con dos módulos:
 
-## Secciones
+- **Colección** (módulo principal, se abre siempre): inventario de colección biológica con
+  lista de especímenes, ficha y formulario para añadir. Por ahora usa datos de ejemplo en
+  memoria.
+- **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
+  funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.
 
-La app tiene tres pestañas abajo:
+Estructura del código (`app/src/main/java/com/santy/grabacion/`):
+
+- `gate/`: pantalla de inicio, gesto de desbloqueo, estado del vault y destinos.
+- `main/`: módulo principal (inventario).
+- El resto de archivos de ese paquete: el vault.
+
+## Vault: cámara en segundo plano
+
+Graba video o toma fotos en **timelapse** mientras sigues usando el teléfono (otras apps,
+pantalla bloqueada, etc.).
+
+### Secciones del vault
+
+El vault tiene tres pestañas abajo:
 
 - **Cámara**
   - Video en 720p, 1080p o 4K, con o sin audio.

@@ -78,4 +78,23 @@
     <string name="battery_settings">Evitar que el sistema cierre owl</string>
     <string name="battery_summary">Desactiva la optimización de batería para que las grabaciones largas no se detengan.</string>
     <string name="open_github">Ver proyecto en GitHub</string>
+
+    <!-- Módulo principal: inventario -->
+    <string name="inventory_title">Colección</string>
+    <string name="add_specimen">Añadir espécimen</string>
+    <string name="field_scientific_name">Nombre científico</string>
+    <string name="field_common_name">Nombre común</string>
+    <string name="field_group">Grupo taxonómico</string>
+    <string name="field_date">Fecha de colecta</string>
+    <string name="field_locality">Localidad</string>
+    <string name="field_collector">Colector</string>
+    <string name="field_notes">Notas</string>
+    <string name="save">Guardar</string>
+    <string name="required_field">Campo obligatorio</string>
+    <string name="memory_only_hint">Por ahora los especímenes nuevos se guardan solo mientras la app está abierta.</string>
+    <string name="about">Acerca de</string>
+    <string name="about_text">Inventario de colección biológica.</string>
+
+    <!-- Vault -->
+    <string name="close_vault">Cerrar vault</string>
 </resources>

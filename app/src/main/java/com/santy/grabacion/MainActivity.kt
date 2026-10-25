@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.santy.grabacion.gate.Destinations
+import com.santy.grabacion.gate.VaultCloseButton
+import com.santy.grabacion.gate.VaultGate
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,9 +17,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Con el vault cerrado (p. ej. al tocar la notificación de grabación) se va al módulo principal.
+        if (!VaultGate.isUnlocked(this)) {
+            startActivity(Destinations.inventory(this))
+            finish()
+            return
+        }
         setContentView(R.layout.activity_main)
         findViewById<android.view.View>(R.id.root).applySystemBarPadding()
         toolbar = findViewById(R.id.toolbar)
+        VaultCloseButton.install(toolbar, this)
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         bottomNav.setOnItemSelectedListener { item ->

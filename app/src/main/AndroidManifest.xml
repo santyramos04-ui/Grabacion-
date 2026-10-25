@@ -20,21 +20,46 @@
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Owl">
 
+        <!-- Punto de entrada: decide entre el módulo principal y el vault. -->
         <activity
-            android:name=".MainActivity"
+            android:name=".gate.SplashActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:theme="@style/Theme.Owl">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Módulo principal: inventario de colección biológica. -->
+        <activity
+            android:name=".main.InventoryActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".main.SpecimenDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".main.AddSpecimenActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".main.MainSettingsActivity"
+            android:exported="false" />
+
+        <!-- Vault: la app de cámara en segundo plano. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".PlayerActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
