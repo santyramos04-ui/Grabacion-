@@ -60,7 +60,7 @@
     <string name="export_csv">CSV · Excel y GBIF (Darwin Core)</string>
     <string name="export_geojson">GeoJSON · QGIS y SIG</string>
     <string name="export_kml">KML · Google Earth</string>
-    <string name="export_map_image">Imagen del mapa (PNG)</string>
+    <string name="export_map_image">Imagen del mapa…</string>
     <string name="export_saved">Guardado en el teléfono</string>
     <!-- Mapa -->
     <string name="map_layer">Capa del mapa</string>
@@ -74,6 +74,31 @@
     <string name="map_centroid">Centro %1$s, %2$s</string>
     <string name="map_export_title">Colección OWL · mapa de registros</string>
     <string name="map_export_summary">%1$d registros · %2$d especies · EOO %3$s km²</string>
+    <string name="map_layer_satellite">Satelital (Esri)</string>
+    <string name="map_attribution_satellite">Imágenes: Esri, Maxar, Earthstar Geographics</string>
+    <string name="map_satellite_toggle">Satélite / mapa</string>
+
+    <!-- Editor de exportación del mapa -->
+    <string name="map_export_editor_title">Exportar mapa</string>
+    <string name="map_export_preview">Vista previa de la imagen</string>
+    <string name="map_export_unavailable">No se pudo preparar el mapa para exportar.</string>
+    <string name="map_export_ratio">Proporción</string>
+    <string name="map_export_ratio_screen">Pantalla</string>
+    <string name="map_export_size">Tamaño</string>
+    <string name="map_export_size_1080">1080 px</string>
+    <string name="map_export_size_1920">1920 px</string>
+    <string name="map_export_size_2560">2560 px</string>
+    <string name="map_export_size_custom">Personalizado</string>
+    <string name="map_export_size_custom_hint">Lado mayor (256–4096)</string>
+    <string name="map_export_dimensions">Dimensiones: %1$d × %2$d px</string>
+    <string name="map_export_detail">Detalle</string>
+    <string name="map_export_detail_value">%1$s</string>
+    <string name="map_export_format">Formato</string>
+    <string name="map_export_name">Nombre del archivo</string>
+    <string name="map_export_save">Guardar</string>
+    <string name="image_format_png">PNG</string>
+    <string name="image_format_jpeg">JPEG</string>
+    <string name="image_format_webp">WebP</string>
     <!-- Estadísticas -->
     <string name="stats_title">Estadísticas</string>
     <string name="stats_empty">Añade especímenes para ver las estadísticas de la colección.</string>

@@ -1,6 +1,5 @@
 package com.santy.grabacion.collection
 
-import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -14,18 +13,18 @@ import kotlinx.coroutines.launch
 class ExportController(
     private val fragment: Fragment,
     private val specimens: suspend () -> List<Specimen>,
-    /** Captura del mapa, si la pantalla tiene uno. */
-    private val mapImage: (() -> Bitmap?)? = null,
+    /** Abre el editor de imagen del mapa, si la pantalla tiene uno. */
+    private val onExportImage: (() -> Unit)? = null,
 ) {
     fun show() {
         val context = fragment.requireContext()
         val formats = CollectionExport.Format.entries
         val labels = formats.map { context.getString(it.label) }.toMutableList()
-        if (mapImage != null) labels += context.getString(R.string.export_map_image)
+        if (onExportImage != null) labels += context.getString(R.string.export_map_image)
         MaterialAlertDialogBuilder(context)
             .setTitle(R.string.export_title)
             .setItems(labels.toTypedArray()) { _, which ->
-                if (which >= formats.size) export { CollectionExport.saveImage(context, mapImage?.invoke() ?: error("Mapa no disponible")) }
+                if (which >= formats.size) onExportImage?.invoke()
                 else export { CollectionExport.save(context, formats[which], specimens()) }
             }
             .show()

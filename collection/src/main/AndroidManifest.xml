@@ -25,5 +25,10 @@
             android:exported="false"
             android:theme="@style/Theme.Owl.Collection"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.santy.grabacion.collection.MapExportActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl.Collection"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>

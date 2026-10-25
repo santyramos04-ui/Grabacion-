@@ -2,10 +2,6 @@ package com.santy.grabacion.collection
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,7 +9,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.drawToBitmap
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
@@ -24,7 +19,6 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
@@ -40,8 +34,11 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
     private companion object {
         const val PREFS = "mapa"
         const val KEY_LAYER = "capa"
+        const val KEY_BASE_LAYER = "capa_base"
         const val KEY_HULL = "poligono"
         const val NO_GROUP = "Sin grupo"
+        /** Índice de la capa satelital dentro de [layers]. */
+        const val SATELLITE = 2
     }
 
     private lateinit var map: MapView
@@ -59,9 +56,10 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
     private val layers: List<Pair<Int, ITileSource>> = listOf(
         R.string.map_layer_standard to TileSourceFactory.MAPNIK,
         R.string.map_layer_topo to TileSourceFactory.OpenTopo,
+        R.string.map_layer_satellite to EsriSatellite,
     )
 
-    private val exporter = ExportController(this, { visible() }, { buildMapImage() })
+    private val exporter = ExportController(this, { visible() }, { openExportEditor() })
 
     private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (SpecimenLocation.hasPermission(requireContext())) centerOnMe()
@@ -79,7 +77,7 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
         detail = view.findViewById(R.id.mapDetail)
         map = view.findViewById(R.id.map)
         map.configure(interactive = true)
-        map.setTileSource(layers.getOrNull(prefs().getInt(KEY_LAYER, 0))?.second ?: TileSourceFactory.MAPNIK)
+        applyLayer(prefs().getInt(KEY_LAYER, 0).coerceIn(0, layers.lastIndex), save = false)
         showHull = prefs().getBoolean(KEY_HULL, true)
 
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
@@ -99,6 +97,7 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
             true
         }
 
+        view.findViewById<View>(R.id.satelliteButton).setOnClickListener { toggleSatellite() }
         view.findViewById<View>(R.id.fitButton).setOnClickListener { fit(visible()) }
         view.findViewById<View>(R.id.myLocationButton).setOnClickListener {
             if (SpecimenLocation.hasPermission(requireContext())) centerOnMe()
@@ -108,11 +107,34 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
     }
 
     private fun ensureMyLocationOverlay(): MyLocationNewOverlay =
-        myLocation ?: MyLocationNewOverlay(GpsMyLocationProvider(requireContext()), map).also {
+        myLocation ?: PulsingLocationOverlay(GpsMyLocationProvider(requireContext()), map).also {
             myLocation = it
             it.enableMyLocation()
             redraw()
         }
+
+    /** Aplica una capa conservando centro y zoom; actualiza la atribución y guarda la elección. */
+    private fun applyLayer(index: Int, save: Boolean = true) {
+        map.setTileSource(layers[index].second)
+        view?.findViewById<TextView>(R.id.attribution)?.setText(attributionFor(index))
+        if (save) {
+            prefs().edit().putInt(KEY_LAYER, index).apply()
+            if (index != SATELLITE) prefs().edit().putInt(KEY_BASE_LAYER, index).apply()
+        }
+    }
+
+    private fun attributionFor(index: Int) = when (index) {
+        1 -> R.string.map_attribution_topo
+        SATELLITE -> R.string.map_attribution_satellite
+        else -> R.string.map_attribution
+    }
+
+    /** Botón rápido: alterna entre la capa cartográfica actual y la satelital, sin mover el mapa. */
+    private fun toggleSatellite() {
+        val current = prefs().getInt(KEY_LAYER, 0)
+        if (current == SATELLITE) applyLayer(prefs().getInt(KEY_BASE_LAYER, 0).coerceIn(0, layers.lastIndex))
+        else applyLayer(SATELLITE)
+    }
 
     /** Centra el mapa en la posición actual; si el GPS aún no la tiene, la pide. */
     private fun centerOnMe() {
@@ -266,53 +288,41 @@ class MapFragment : CollectionTab(R.layout.fragment_map) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.map_layer)
             .setSingleChoiceItems(layers.map { getString(it.first) }.toTypedArray(), current) { dialog, which ->
-                prefs().edit().putInt(KEY_LAYER, which).apply()
-                map.setTileSource(layers[which].second)
-                requireView().findViewById<TextView>(R.id.attribution).setText(
-                    if (which == 1) R.string.map_attribution_topo else R.string.map_attribution
-                )
+                applyLayer(which)
                 dialog.dismiss()
             }
             .show()
     }
 
-    /** Imagen para exportar: el mapa tal como se ve, con título, leyenda y atribución. */
-    private fun buildMapImage(): Bitmap? {
-        if (map.width == 0 || map.height == 0) return null
-        val mapBitmap = map.drawToBitmap()
-        val density = resources.displayMetrics.density
+    /** Prepara los datos del mapa y abre el editor previo a la exportación. */
+    private fun openExportEditor() {
+        if (map.width == 0 || map.height == 0) return
         val shown = visible()
-        val legend = shown.groupingBy { groupOf(it) }.eachCount().entries.sortedByDescending { it.value }
-        val pad = 16 * density
-        val line = 22 * density
-        val header = 56 * density
-        val footer = pad * 2 + line * (legend.size + 2)
-        val result = Bitmap.createBitmap(mapBitmap.width, (header + mapBitmap.height + footer).toInt(), Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.WHITE)
-        val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF211A14.toInt(); textSize = 20 * density; isFakeBoldText = true }
-        canvas.drawText(getString(R.string.map_export_title), pad, header - 20 * density, text)
-        canvas.drawBitmap(mapBitmap, 0f, header, null)
-        text.isFakeBoldText = false
-        text.textSize = 14 * density
-        var y = header + mapBitmap.height + pad + line * 0.7f
         val stats = CollectionStats(shown)
         val geo = stats.geo()
-        canvas.drawText(
-            getString(R.string.map_export_summary, stats.total, stats.species, geo?.let { fmt(it.eooKm2) } ?: "0"),
-            pad, y, text,
+        val legend = shown.groupingBy { groupOf(it) }.eachCount().entries.sortedByDescending { it.value }
+            .map { (group, count) ->
+                MapExportData.LegendEntry(group, count, GroupColors.colorFor(if (group == NO_GROUP) "" else group))
+            }
+        val hull = if (showHull && geo != null && geo.hull.size >= 3) geo.hull else null
+        val primary = com.google.android.material.color.MaterialColors.getColor(
+            map, com.google.android.material.R.attr.colorPrimary,
         )
-        val dot = Paint(Paint.ANTI_ALIAS_FLAG)
-        legend.forEach { (group, count) ->
-            y += line
-            dot.color = GroupColors.colorFor(if (group == NO_GROUP) "" else group)
-            canvas.drawCircle(pad + 6 * density, y - 5 * density, 6 * density, dot)
-            canvas.drawText("$group ($count)", pad + 20 * density, y, text)
-        }
-        text.textSize = 11 * density
-        text.color = 0xFF666666.toInt()
-        canvas.drawText(getString(R.string.map_attribution), pad, y + line, text)
-        return result
+        val center = map.mapCenter
+        MapExportData.request = MapExportData.Request(
+            centerLat = center.latitude,
+            centerLng = center.longitude,
+            zoom = map.zoomLevelDouble,
+            layerIndex = prefs().getInt(KEY_LAYER, 0).coerceIn(0, layers.lastIndex),
+            screenRatio = map.width.toFloat() / map.height,
+            points = shown.map { MapExportData.Point(it.latitude!!, it.longitude!!, GroupColors.colorFor(groupOf(it).let { g -> if (g == NO_GROUP) "" else g })) },
+            hull = hull,
+            hullColor = primary,
+            title = getString(R.string.map_export_title),
+            summary = getString(R.string.map_export_summary, stats.total, stats.species, geo?.let { fmt(it.eooKm2) } ?: "0"),
+            legend = legend,
+        )
+        startActivity(Destinations.mapExport(requireContext()))
     }
 
     private fun prefs() = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)

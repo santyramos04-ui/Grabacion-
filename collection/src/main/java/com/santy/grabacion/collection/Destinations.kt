@@ -15,5 +15,7 @@ object Destinations {
     fun addSpecimen(context: Context) = Intent(context, SpecimenEditActivity::class.java)
     fun editSpecimen(context: Context, id: Long) =
         Intent(context, SpecimenEditActivity::class.java).putExtra(EXTRA_SPECIMEN_ID, id)
+    /** Editor previo a la exportación de la imagen del mapa (datos en MapExportData). */
+    fun mapExport(context: Context) = Intent(context, MapExportActivity::class.java)
 
 }

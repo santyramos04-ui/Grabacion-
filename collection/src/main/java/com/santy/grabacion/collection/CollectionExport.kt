@@ -134,11 +134,37 @@ object CollectionExport {
         }
     }
 
+    /** Formatos de imagen que admite la exportación del mapa. */
+    enum class ImageFormat(val extension: String, val mimeType: String, val label: Int) {
+        PNG("png", "image/png", R.string.image_format_png),
+        JPEG("jpg", "image/jpeg", R.string.image_format_jpeg),
+        WEBP("webp", "image/webp", R.string.image_format_webp),
+    }
+
+    fun imageFileName(format: ImageFormat, base: String? = null): String {
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
+        val clean = base?.trim()?.replace(Regex("[^\\p{L}\\p{N} _-]"), "")?.replace(' ', '_')?.take(60)
+        val name = if (clean.isNullOrBlank()) "mapa_owl_$stamp" else clean
+        return "$name.${format.extension}"
+    }
+
     /** Guarda la imagen del mapa en Imágenes/OWL, visible en la galería. */
-    suspend fun saveImage(context: Context, bitmap: Bitmap): Saved = withContext(Dispatchers.IO) {
-        val name = "mapa_owl_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}.png"
-        insert(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PICTURES_FOLDER, name, "image/png") { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+    suspend fun saveImage(
+        context: Context,
+        bitmap: Bitmap,
+        format: ImageFormat = ImageFormat.PNG,
+        name: String = imageFileName(format),
+    ): Saved = withContext(Dispatchers.IO) {
+        insert(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PICTURES_FOLDER, name, format.mimeType) { out ->
+            val compressFormat = when (format) {
+                ImageFormat.PNG -> Bitmap.CompressFormat.PNG
+                ImageFormat.JPEG -> Bitmap.CompressFormat.JPEG
+                ImageFormat.WEBP ->
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) Bitmap.CompressFormat.WEBP_LOSSY
+                    @Suppress("DEPRECATION") else Bitmap.CompressFormat.WEBP
+            }
+            val quality = if (format == ImageFormat.PNG) 100 else 92
+            bitmap.compress(compressFormat, quality, out)
         }
     }
 

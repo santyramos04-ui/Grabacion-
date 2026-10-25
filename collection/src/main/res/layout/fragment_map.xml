@@ -57,6 +57,16 @@
             android:orientation="vertical">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/satelliteButton"
+                style="?attr/floatingActionButtonSmallSecondaryStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:contentDescription="@string/map_satellite_toggle"
+                android:tooltipText="@string/map_satellite_toggle"
+                app:srcCompat="@drawable/ic_satellite" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fitButton"
                 style="?attr/floatingActionButtonSmallSecondaryStyle"
                 android:layout_width="wrap_content"
