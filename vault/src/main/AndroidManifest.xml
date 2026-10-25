@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vault: cámara en segundo plano, galería y editor. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <application>
+        <activity
+            android:name="com.santy.grabacion.vault.VaultActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Owl" />
+        <activity
+            android:name="com.santy.grabacion.vault.PlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="false"
+            android:theme="@style/Theme.Owl" />
+        <activity
+            android:name="com.santy.grabacion.vault.PhotoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl" />
+        <activity
+            android:name="com.santy.grabacion.vault.SessionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl" />
+        <activity
+            android:name="com.santy.grabacion.vault.EditorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl" />
+    </application>
+</manifest>

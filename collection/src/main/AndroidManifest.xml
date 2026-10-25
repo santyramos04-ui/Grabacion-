@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colección biológica: inventario, mapa, estadísticas y exportación. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application>
+        <activity
+            android:name="com.santy.grabacion.collection.CollectionActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Owl.Collection" />
+        <activity
+            android:name="com.santy.grabacion.collection.SpecimenDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl.Collection" />
+        <activity
+            android:name="com.santy.grabacion.collection.SpecimenEditActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Owl.Collection"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+</manifest>

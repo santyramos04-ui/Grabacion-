@@ -8,7 +8,10 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.santy.grabacion.R
-import com.santy.grabacion.applySystemBarPadding
+import com.santy.grabacion.core.Routes
+import com.santy.grabacion.core.UnlockTrigger
+import com.santy.grabacion.core.VaultGate
+import com.santy.grabacion.core.applySystemBarPadding
 
 /**
  * Punto de entrada de la app. Siempre lleva al inventario y cierra el vault, aunque la app se
@@ -20,7 +23,7 @@ class SplashActivity : AppCompatActivity() {
     private val goToInventory = Runnable {
         // Borra la tarea anterior: si el vault quedó en segundo plano, Atrás no debe volver a él.
         startActivity(
-            Destinations.inventory(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            Routes.collection(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         )
         finish()
     }

@@ -1,29 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifest de la app que une los módulos. Cada módulo declara sus propias pantallas, servicios y
+  permisos en su manifest (core, recorder, vault, collection); Android los combina al compilar.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-feature android:name="android.hardware.camera.any" android:required="true" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
-
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-
     <application
+        android:name=".OwlApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -33,57 +16,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Owl">
 
-        <!-- Punto de entrada: decide entre el módulo principal y el vault. -->
+        <!-- Punto de entrada: siempre abre la colección. -->
         <activity
             android:name=".gate.SplashActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Owl.Collection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Módulo principal: inventario de colección biológica. -->
-        <activity
-            android:name=".main.CollectionActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false"
-            android:launchMode="singleTop" />
-        <activity
-            android:name=".main.SpecimenDetailActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false" />
-        <activity
-            android:name=".main.SpecimenEditActivity"
-            android:theme="@style/Theme.Owl.Collection"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!-- Vault: la app de cámara en segundo plano. -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false"
-            android:launchMode="singleTop" />
-        <activity
-            android:name=".PlayerActivity"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
-            android:exported="false" />
-        <activity
-            android:name=".PhotoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SessionActivity"
-            android:exported="false" />
-        <activity
-            android:name=".EditorActivity"
-            android:exported="false" />
-
-        <service
-            android:name=".CameraService"
-            android:exported="false"
-            android:foregroundServiceType="camera|microphone" />
-
+        <!-- Compartir archivos (actualizaciones, fotos de especímenes, exportaciones). -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.files"

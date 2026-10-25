@@ -14,4 +14,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Owl"
-include(":app")
+// :app une los módulos; :vault y :collection no dependen entre sí (ver ARCHITECTURE.md).
+include(":app", ":core", ":recorder", ":vault", ":collection")

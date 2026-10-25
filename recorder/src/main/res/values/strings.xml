@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">Captura en segundo plano</string>
+    <string name="notif_video">Grabando video</string>
+    <string name="notif_timelapse">Timelapse en curso</string>
+    <string name="notif_timelapse_text">%1$d fotos · cada %2$d s</string>
+</resources>

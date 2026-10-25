@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mode_video">Video</string>
+    <string name="mode_timelapse">Timelapse (fotos)</string>
+    <string name="interval_hint">Intervalo entre fotos (segundos)</string>
+    <string name="max_photos_hint">Máximo de fotos (0 = sin límite)</string>
+    <string name="front_camera">Cámara frontal</string>
+    <string name="record_audio">Grabar audio</string>
+    <string name="quality">Calidad de video</string>
+    <string name="start">Iniciar</string>
+    <string name="background_hint">Puedes salir de la app, bloquear la pantalla o usar otras apps: la cámara sigue trabajando. Detén la captura desde aquí o desde la notificación.</string>
+    <string name="status_idle">Listo</string>
+    <string name="status_video">● Grabando video en segundo plano</string>
+    <string name="status_timelapse">● Timelapse: %1$d fotos (cada %2$d s)</string>
+    <string name="permissions_needed">Se necesita permiso de cámara para usar la app</string>
+    <string name="saved_to">Los archivos se guardan en Movies/Owl y Pictures/Owl</string>
+    <!-- Navegación -->
+    <string name="nav_camera">Cámara</string>
+    <string name="nav_gallery">Galería</string>
+    <!-- Galería -->
+    <string name="tab_videos">Videos</string>
+    <string name="tab_timelapses">Timelapses</string>
+    <string name="empty_videos">Aún no hay videos. Graba uno desde la pestaña Cámara.</string>
+    <string name="empty_timelapses">Aún no hay timelapses. Inicia uno desde la pestaña Cámara.</string>
+    <string name="session_photos">%d fotos</string>
+    <string name="media_permission">Permite el acceso a fotos y videos para ver la galería</string>
+    <string name="grant">Permitir</string>
+    <string name="action_share_all">Compartir todas</string>
+    <string name="action_delete_session">Eliminar timelapse</string>
+    <string name="action_make_video">Crear video</string>
+    <string name="confirm_delete">¿Eliminar este archivo?</string>
+    <string name="confirm_delete_session">¿Eliminar las %d fotos de este timelapse?</string>
+    <string name="deleted">Eliminado</string>
+    <!-- Editor -->
+    <string name="editor_title">Edición rápida</string>
+    <string name="trim">Recortar</string>
+    <string name="remove_audio">Quitar audio</string>
+    <string name="rotate">Rotar 90°</string>
+    <string name="rotation_value">Rotación: %d°</string>
+    <string name="save_copy">Guardar como copia</string>
+    <string name="exporting">Exportando… %d%%</string>
+    <string name="export_done">Guardado en Movies/Owl</string>
+    <string name="make_video_title">Crear video del timelapse</string>
+    <string name="fps_label">Fotos por segundo: %d</string>
+    <string name="make_video_summary">%1$d fotos → video de %2$.1f s</string>
+    <string name="create">Crear</string>
+    <string name="battery_settings">Evitar que el sistema cierre owl</string>
+    <string name="battery_summary">Desactiva la optimización de batería para que las grabaciones largas no se detengan.</string>
+    <string name="open_github">Ver proyecto en GitHub</string>
+    <!-- Vault -->
+    <string name="close_vault">Cerrar vault</string>
+</resources>

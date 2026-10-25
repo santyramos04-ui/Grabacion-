@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ShapeAppearance.Vault.Small" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">8dp</item>
+    </style>
+    <style name="ShapeAppearance.Vault.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">12dp</item>
+    </style>
+    <style name="ShapeAppearance.Vault.Large" parent="ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerSize">20dp</item>
+    </style>
+    <style name="TextAppearance.Vault.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/atkinson_bold</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="TextAppearance.Vault.NavLabel" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:fontFamily">@font/atkinson_bold</item>
+    </style>
+    <style name="TextAppearance.Vault.Section" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">@font/atkinson_bold</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    <!-- Cifras de tiempo y contadores con ancho fijo para que no bailen. -->
+    <style name="TextAppearance.Vault.Timecode" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/atkinson_bold</item>
+        <item name="android:fontFeatureSettings">"tnum"</item>
+        <item name="android:textColor">@color/vault_on_surface</item>
+    </style>
+    <style name="TextAppearance.Vault.Hint" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:lineSpacingMultiplier">1.15</item>
+    </style>
+    <style name="Widget.Vault.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/vault_bg</item>
+        <item name="titleTextAppearance">@style/TextAppearance.Vault.Title</item>
+    </style>
+    <style name="Widget.Vault.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/vault_surface_low</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.Vault.NavLabel</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.Vault.NavLabel</item>
+        <item name="elevation">0dp</item>
+    </style>
+    <style name="Widget.Vault.Tab" parent="Widget.Material3.TabLayout">
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
+        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="tabTextAppearance">@style/TextAppearance.Vault.NavLabel</item>
+        <item name="android:background">@color/vault_bg</item>
+    </style>
+    <!-- Panel quieto con filete fino, sin sombra. -->
+    <style name="Widget.Vault.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/vault_surface</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+    <!-- Botón de grabar: la única pieza roja de la interfaz. -->
+    <style name="Widget.Vault.RecordButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/vault_record</item>
+        <item name="android:textColor">@color/vault_on_record</item>
+        <item name="iconTint">@color/vault_on_record</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">32dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">10dp</item>
+    </style>
+    <!-- Selector segmentado de modo y calidad. -->
+    <style name="Widget.Vault.Segment" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/vault_segment_text</item>
+        <item name="backgroundTint">@color/vault_segment_bg</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+    </style>
+</resources>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Tema del vault (app de cámara), dirección "Visor": siempre oscuro, como el interior de una
+      cámara. Colores en colors_vault.xml, estilos en styles_vault.xml. No afecta a la Colección.
+    -->
+    <style name="Theme.Owl" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/vault_primary</item>
+        <item name="colorOnPrimary">@color/vault_on_primary</item>
+        <item name="colorPrimaryContainer">@color/vault_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/vault_on_primary_container</item>
+        <item name="colorSecondary">@color/vault_primary</item>
+        <item name="colorOnSecondary">@color/vault_on_primary</item>
+        <item name="colorSecondaryContainer">@color/vault_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/vault_on_secondary_container</item>
+        <item name="colorTertiary">@color/vault_primary</item>
+        <item name="colorOnTertiary">@color/vault_on_primary</item>
+        <item name="colorError">@color/vault_record</item>
+        <item name="colorOnError">@color/vault_on_record</item>
+        <item name="colorErrorContainer">@color/vault_record_container</item>
+        <item name="android:colorBackground">@color/vault_bg</item>
+        <item name="android:windowBackground">@color/vault_bg</item>
+        <item name="colorOnBackground">@color/vault_on_surface</item>
+        <item name="colorSurface">@color/vault_surface</item>
+        <item name="colorOnSurface">@color/vault_on_surface</item>
+        <item name="colorSurfaceVariant">@color/vault_surface_high</item>
+        <item name="colorOnSurfaceVariant">@color/vault_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/vault_bg</item>
+        <item name="colorSurfaceContainerLow">@color/vault_surface_low</item>
+        <item name="colorSurfaceContainer">@color/vault_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/vault_surface_high</item>
+        <item name="colorSurfaceContainerHighest">@color/vault_surface_highest</item>
+        <item name="colorOutline">@color/vault_outline</item>
+        <item name="colorOutlineVariant">@color/vault_outline_variant</item>
+        <item name="android:fontFamily">@font/atkinson</item>
+        <item name="fontFamily">@font/atkinson</item>
+        <item name="toolbarStyle">@style/Widget.Vault.Toolbar</item>
+        <item name="bottomNavigationStyle">@style/Widget.Vault.BottomNav</item>
+        <item name="tabStyle">@style/Widget.Vault.Tab</item>
+        <item name="materialCardViewStyle">@style/Widget.Vault.Card</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.Vault.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.Vault.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.Vault.Large</item>
+    </style>
+</resources>
