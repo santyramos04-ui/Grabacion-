@@ -3,9 +3,12 @@
 App Android con dos módulos:
 
 - **Colección** (módulo principal, se abre siempre): inventario de colección biológica.
-  Los especímenes se guardan en una base de datos local con número de catálogo
-  (`OWL-0001`…), foto (cámara o galería), fecha, localidad, colector y notas; se pueden
-  buscar, editar y eliminar. Las fotos se guardan en el almacenamiento privado de la app,
+  Los especímenes se guardan en una base de datos local con código de catálogo por grupo
+  (3 letras del grupo + número: `COL-0001` para Coleoptera, `IND-0001` sin grupo), foto
+  (cámara o galería), fecha, localidad, colector y notas; se pueden buscar, editar y
+  eliminar. Al escribir el nombre común, el formulario sugiere especies de
+  [iNaturalist](https://www.inaturalist.org) observadas en la localidad y rellena el nombre
+  científico y el grupo. Las fotos se guardan en el almacenamiento privado de la app,
   fuera de la galería del teléfono.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
   funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.

@@ -13,21 +13,29 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.santy.grabacion.R
 import com.santy.grabacion.applySystemBarPadding
 import com.santy.grabacion.gate.Destinations
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-/** Formulario para añadir o editar un espécimen. */
+/**
+ * Formulario para añadir o editar un espécimen. Al escribir el nombre común sugiere especies
+ * de iNaturalist observadas en la localidad indicada.
+ */
 class SpecimenEditActivity : AppCompatActivity() {
 
     private companion object {
@@ -41,7 +49,8 @@ class SpecimenEditActivity : AppCompatActivity() {
     private lateinit var removePhotoButton: View
     private lateinit var scientificLayout: TextInputLayout
     private lateinit var scientific: EditText
-    private lateinit var common: EditText
+    private lateinit var commonLayout: TextInputLayout
+    private lateinit var common: MaterialAutoCompleteTextView
     private lateinit var group: EditText
     private lateinit var date: EditText
     private lateinit var locality: EditText
@@ -55,6 +64,10 @@ class SpecimenEditActivity : AppCompatActivity() {
     /** Archivo que la app de cámara está escribiendo. */
     private var pendingCapture: String? = null
     private var saved = false
+    private val suggestions by lazy { SuggestionAdapter(this) }
+    private var suggestJob: Job? = null
+    /** Evita buscar de nuevo cuando el texto lo pone la propia sugerencia elegida. */
+    private var applyingSuggestion = false
 
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         val captured = pendingCapture ?: return@registerForActivityResult
@@ -91,6 +104,7 @@ class SpecimenEditActivity : AppCompatActivity() {
         removePhotoButton = findViewById(R.id.removePhotoButton)
         scientificLayout = findViewById(R.id.scientificNameLayout)
         scientific = findViewById(R.id.scientificNameInput)
+        commonLayout = findViewById(R.id.commonNameLayout)
         common = findViewById(R.id.commonNameInput)
         group = findViewById(R.id.groupInput)
         date = findViewById(R.id.dateInput)
@@ -103,6 +117,9 @@ class SpecimenEditActivity : AppCompatActivity() {
             pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         removePhotoButton.setOnClickListener { replacePhoto(null) }
+        common.setAdapter(suggestions)
+        common.doAfterTextChanged { text -> if (common.hasFocus() && !applyingSuggestion) scheduleSuggestions(text.toString()) }
+        common.setOnItemClickListener { _, _, position, _ -> applySuggestion(suggestions.getItem(position)) }
         date.setOnClickListener { pickDate() }
         findViewById<View>(R.id.saveButton).setOnClickListener { save() }
 
@@ -119,6 +136,7 @@ class SpecimenEditActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val specimen = SpecimenRepository.get(this@SpecimenEditActivity, id) ?: return@launch finish()
                 original = specimen
+                toolbar.subtitle = specimen.catalogCode
                 if (savedInstanceState == null) fill(specimen)
                 restorePhoto(savedInstanceState)
             }
@@ -140,6 +158,58 @@ class SpecimenEditActivity : AppCompatActivity() {
     private fun restorePhoto(state: Bundle?) {
         photo = if (state != null) state.getString(STATE_PHOTO) else original?.photo
         showPhoto()
+    }
+
+    /** Busca sugerencias medio segundo después de que el usuario deja de escribir. */
+    private fun scheduleSuggestions(text: String) {
+        suggestJob?.cancel()
+        if (text.trim().length < 3) {
+            suggestions.submit(emptyList())
+            commonLayout.helperText = getString(R.string.suggestions_helper)
+            return
+        }
+        suggestJob = lifecycleScope.launch {
+            delay(400)
+            commonLayout.helperText = getString(R.string.searching_suggestions)
+            try {
+                val result = INaturalist.suggest(text.trim(), locality.text.toString())
+                suggestions.submit(result.suggestions)
+                commonLayout.helperText = when {
+                    result.suggestions.isEmpty() -> getString(R.string.no_suggestions)
+                    result.place != null && result.suggestions.any { it.nearbyObservations != null } ->
+                        getString(R.string.suggestions_near, result.place.name)
+                    else -> getString(R.string.suggestions_global)
+                }
+                if (result.suggestions.isNotEmpty() && common.hasFocus()) common.showDropDown()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                commonLayout.helperText = getString(R.string.suggestions_offline)
+            }
+        }
+    }
+
+    /** Rellena nombre común, científico y grupo con la especie elegida. */
+    private fun applySuggestion(suggestion: INaturalist.Suggestion) {
+        suggestJob?.cancel()
+        applyingSuggestion = true
+        common.setText(suggestion.commonName.ifBlank { suggestion.scientificName }, false)
+        applyingSuggestion = false
+        common.dismissDropDown()
+        scientific.setText(suggestion.scientificName)
+        scientificLayout.error = null
+        group.setText(suggestion.iconicGroup)
+        commonLayout.helperText = getString(R.string.suggestions_helper)
+        lifecycleScope.launch {
+            val order = try {
+                INaturalist.group(suggestion.taxonId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+            if (order != null) group.setText(order)
+        }
     }
 
     private fun fill(specimen: Specimen) {
@@ -213,6 +283,7 @@ class SpecimenEditActivity : AppCompatActivity() {
         scientificLayout.error = null
         val specimen = Specimen(
             id = original?.id ?: 0L,
+            catalogCode = original?.catalogCode ?: "",
             scientificName = name,
             commonName = common.text.toString().trim(),
             group = group.text.toString().trim(),

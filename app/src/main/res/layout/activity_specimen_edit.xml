@@ -66,14 +66,14 @@
                 android:visibility="gone" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/scientificNameLayout"
+                android:id="@+id/localityLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="@string/field_scientific_name">
+                android:hint="@string/field_locality">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/scientificNameInput"
+                    android:id="@+id/localityInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text|textCapSentences" />
@@ -84,10 +84,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="@string/field_common_name">
+                android:hint="@string/field_common_name"
+                app:helperText="@string/suggestions_helper"
+                app:helperTextEnabled="true">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/commonNameInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:completionThreshold="3"
+                    android:inputType="text|textCapSentences" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/scientificNameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/field_scientific_name">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/commonNameInput"
+                    android:id="@+id/scientificNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text|textCapSentences" />
@@ -120,20 +137,6 @@
                     android:layout_height="wrap_content"
                     android:focusable="false"
                     android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/localityLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="@string/field_locality">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/localityInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text|textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout

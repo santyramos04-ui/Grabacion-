@@ -60,7 +60,7 @@ class SpecimenDetailActivity : AppCompatActivity() {
     }
 
     private fun show(specimen: Specimen) {
-        toolbar.title = specimen.catalogNumber
+        toolbar.title = specimen.catalogCode
         findViewById<TextView>(R.id.scientificName).text = specimen.scientificName
         findViewById<TextView>(R.id.commonName).apply {
             text = specimen.commonName
@@ -89,7 +89,7 @@ class SpecimenDetailActivity : AppCompatActivity() {
     private fun confirmDelete() {
         val current = specimen ?: return
         MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.delete_specimen_title, current.catalogNumber))
+            .setTitle(getString(R.string.delete_specimen_title, current.catalogCode))
             .setMessage(R.string.delete_specimen_message)
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 lifecycleScope.launch {

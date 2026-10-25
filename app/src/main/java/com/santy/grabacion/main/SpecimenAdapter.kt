@@ -35,7 +35,7 @@ class SpecimenAdapter(private val onClick: (Specimen) -> Unit) :
         val specimen = getItem(position)
         val context = holder.itemView.context
         holder.scientific.text = specimen.scientificName
-        holder.subtitle.text = listOf(specimen.catalogNumber, specimen.commonName, specimen.group)
+        holder.subtitle.text = listOf(specimen.catalogCode, specimen.commonName, specimen.group)
             .filter { it.isNotBlank() }
             .joinToString(" · ")
         holder.date.text = specimen.collectedOn

@@ -7,10 +7,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.text.Normalizer
 import java.util.Locale
 
 data class Specimen(
     val id: Long = 0,
+    /** Código de catálogo: abreviatura del grupo + número, p. ej. COL-0003. Lo asigna [SpecimenRepository]. */
+    val catalogCode: String = "",
     val scientificName: String,
     val commonName: String = "",
     val group: String = "",
@@ -21,19 +24,53 @@ data class Specimen(
     val notes: String = "",
     /** Nombre del archivo de la foto dentro de [SpecimenPhotos.dir], o null. */
     val photo: String? = null,
-) {
-    val catalogNumber: String get() = String.format(Locale.US, "OWL-%04d", id)
+)
+
+/** Código de catálogo: 3 letras del grupo sin tildes (Coleoptera → COL) o IND si no hay grupo. */
+object CatalogCode {
+    private const val UNDETERMINED = "IND"
+
+    fun prefixFor(group: String): String {
+        val letters = Normalizer.normalize(group, Normalizer.Form.NFD)
+            .filter { it.isLetter() && it.code < 128 }
+            .uppercase(Locale.ROOT)
+        return when {
+            letters.isEmpty() -> UNDETERMINED
+            letters.length < 3 -> letters.padEnd(3, 'X')
+            else -> letters.take(3)
+        }
+    }
+
+    fun prefixOf(code: String) = code.substringBefore('-')
+
+    fun format(prefix: String, number: Int) = String.format(Locale.US, "%s-%04d", prefix, number)
+
+    /** Siguiente código libre para [prefix], según los códigos ya usados en la base de datos. */
+    fun next(db: SQLiteDatabase, prefix: String): String {
+        val max = db.rawQuery(
+            "SELECT catalog_code FROM specimens WHERE catalog_code LIKE ?", arrayOf("$prefix-%")
+        ).use { cursor ->
+            var highest = 0
+            while (cursor.moveToNext()) {
+                val number = cursor.getString(0)?.substringAfter('-')?.toIntOrNull() ?: 0
+                if (number > highest) highest = number
+            }
+            highest
+        }
+        return format(prefix, max + 1)
+    }
 }
 
 /** Base de datos local de la colección (archivo coleccion.db en el almacenamiento privado). */
 private class SpecimenDatabase(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "coleccion.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "coleccion.db", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             """
             CREATE TABLE specimens (
                 _id INTEGER PRIMARY KEY AUTOINCREMENT,
+                catalog_code TEXT,
                 scientific_name TEXT NOT NULL,
                 common_name TEXT NOT NULL DEFAULT '',
                 group_name TEXT NOT NULL DEFAULT '',
@@ -46,9 +83,22 @@ private class SpecimenDatabase(context: Context) :
             )
             """.trimIndent()
         )
+        db.execSQL("CREATE UNIQUE INDEX specimens_catalog_code ON specimens (catalog_code)")
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            // Versión 1 numeraba con OWL-<id>; se asigna el código por grupo a los registros existentes.
+            db.execSQL("ALTER TABLE specimens ADD COLUMN catalog_code TEXT")
+            db.execSQL("CREATE UNIQUE INDEX specimens_catalog_code ON specimens (catalog_code)")
+            db.rawQuery("SELECT _id, group_name FROM specimens ORDER BY _id", null).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val code = CatalogCode.next(db, CatalogCode.prefixFor(cursor.getString(1)))
+                    db.execSQL("UPDATE specimens SET catalog_code = ? WHERE _id = ?", arrayOf(code, cursor.getLong(0)))
+                }
+            }
+        }
+    }
 }
 
 object SpecimenRepository {
@@ -69,8 +119,8 @@ object SpecimenRepository {
             null to null
         } else {
             val like = "%$filter%"
-            "scientific_name LIKE ? OR common_name LIKE ? OR group_name LIKE ? OR locality LIKE ?" to
-                arrayOf(like, like, like, like)
+            "catalog_code LIKE ? OR scientific_name LIKE ? OR common_name LIKE ? OR group_name LIKE ? OR locality LIKE ?" to
+                arrayOf(like, like, like, like, like)
         }
         db(context).query(TABLE, null, selection, args, null, null, "collected_on DESC, _id DESC")
             .use { cursor -> buildList<Specimen> { while (cursor.moveToNext()) add(cursor.toSpecimen()) } }
@@ -81,8 +131,13 @@ object SpecimenRepository {
             .use { if (it.moveToFirst()) it.toSpecimen() else null }
     }
 
-    /** Inserta si [specimen] no tiene id; si lo tiene, lo actualiza. Devuelve el id. */
+    /**
+     * Inserta si [specimen] no tiene id; si lo tiene, lo actualiza. Asigna un código nuevo al
+     * crear el registro o cuando el cambio de grupo cambia su abreviatura. Devuelve el id.
+     */
     suspend fun save(context: Context, specimen: Specimen): Long = withContext(Dispatchers.IO) {
+        val db = db(context)
+        val prefix = CatalogCode.prefixFor(specimen.group)
         val values = ContentValues().apply {
             put("scientific_name", specimen.scientificName)
             put("common_name", specimen.commonName)
@@ -93,12 +148,23 @@ object SpecimenRepository {
             put("notes", specimen.notes)
             put("photo", specimen.photo)
         }
-        if (specimen.id == 0L) {
-            values.put("created_at", System.currentTimeMillis())
-            db(context).insertOrThrow(TABLE, null, values)
-        } else {
-            db(context).update(TABLE, values, "_id = ?", arrayOf(specimen.id.toString()))
-            specimen.id
+        db.beginTransaction()
+        try {
+            val id = if (specimen.id == 0L) {
+                values.put("catalog_code", CatalogCode.next(db, prefix))
+                values.put("created_at", System.currentTimeMillis())
+                db.insertOrThrow(TABLE, null, values)
+            } else {
+                if (CatalogCode.prefixOf(specimen.catalogCode) != prefix) {
+                    values.put("catalog_code", CatalogCode.next(db, prefix))
+                }
+                db.update(TABLE, values, "_id = ?", arrayOf(specimen.id.toString()))
+                specimen.id
+            }
+            db.setTransactionSuccessful()
+            id
+        } finally {
+            db.endTransaction()
         }
     }
 
@@ -109,6 +175,7 @@ object SpecimenRepository {
 
     private fun Cursor.toSpecimen() = Specimen(
         id = getLong(getColumnIndexOrThrow("_id")),
+        catalogCode = getString(getColumnIndexOrThrow("catalog_code")) ?: "",
         scientificName = getString(getColumnIndexOrThrow("scientific_name")),
         commonName = getString(getColumnIndexOrThrow("common_name")),
         group = getString(getColumnIndexOrThrow("group_name")),
