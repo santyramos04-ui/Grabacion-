@@ -16,6 +16,9 @@ import com.santy.grabacion.R
 import com.santy.grabacion.applySystemBarPadding
 import com.santy.grabacion.gate.Destinations
 import kotlinx.coroutines.launch
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 
 /** Ficha de un espécimen, con opciones para editarlo o eliminarlo. */
 class SpecimenDetailActivity : AppCompatActivity() {
@@ -25,10 +28,12 @@ class SpecimenDetailActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var photo: ImageView
     private lateinit var fields: LinearLayout
+    private lateinit var map: MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        MapSetup.init(this)
         setContentView(R.layout.activity_specimen_detail)
         findViewById<View>(R.id.root).applySystemBarPadding()
 
@@ -48,10 +53,23 @@ class SpecimenDetailActivity : AppCompatActivity() {
         }
         photo = findViewById(R.id.photo)
         fields = findViewById(R.id.fields)
+        map = findViewById(R.id.map)
+        map.configure(interactive = false)
+        // Vista previa fija dentro de la ficha; para moverse está «Abrir en Maps» o el mapa de la colección.
+        map.setOnTouchListener { _, _ -> true }
+        findViewById<View>(R.id.openInMapsButton).setOnClickListener {
+            specimen?.let { SpecimenLocation.openInMaps(this, it) }
+        }
+    }
+
+    override fun onPause() {
+        map.onPause()
+        super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
+        map.onResume()
         lifecycleScope.launch {
             val loaded = SpecimenRepository.get(this@SpecimenDetailActivity, specimenId) ?: return@launch finish()
             specimen = loaded
@@ -70,6 +88,18 @@ class SpecimenDetailActivity : AppCompatActivity() {
         val name = specimen.photo
         photo.visibility = if (name == null) View.GONE else View.VISIBLE
         if (name != null) Glide.with(this).load(SpecimenPhotos.file(this, name)).into(photo)
+
+        val description = SpecimenLocation.describe(specimen)
+        findViewById<View>(R.id.locationSection).visibility = if (description == null) View.GONE else View.VISIBLE
+        if (description != null) {
+            findViewById<TextView>(R.id.locationText).text = description
+            val point = GeoPoint(specimen.latitude!!, specimen.longitude!!)
+            map.overlays.removeAll { it is Marker }
+            map.overlays.add(specimenMarker(map, specimen, point, onOpen = null))
+            map.controller.setZoom(14.0)
+            map.controller.setCenter(point)
+            map.invalidate()
+        }
 
         fields.removeAllViews()
         listOf(

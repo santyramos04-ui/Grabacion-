@@ -38,12 +38,12 @@ class InventoryActivity : AppCompatActivity() {
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.inventory_menu)
         toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_settings) {
-                startActivity(Destinations.mainSettings(this))
-                true
-            } else {
-                false
+            when (item.itemId) {
+                R.id.action_map -> startActivity(Destinations.collectionMap(this))
+                R.id.action_settings -> startActivity(Destinations.mainSettings(this))
+                else -> return@setOnMenuItemClickListener false
             }
+            true
         }
         (toolbar.menu.findItem(R.id.action_search).actionView as SearchView).apply {
             queryHint = getString(R.string.search_hint)

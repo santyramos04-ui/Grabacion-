@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
@@ -41,6 +42,7 @@ class SpecimenEditActivity : AppCompatActivity() {
     private companion object {
         const val STATE_PHOTO = "photo"
         const val STATE_PENDING_CAPTURE = "pending_capture"
+        const val STATE_LOCATION = "location"
         const val PREFS = "coleccion"
         const val KEY_LAST_COLLECTOR = "ultimo_colector"
     }
@@ -56,6 +58,12 @@ class SpecimenEditActivity : AppCompatActivity() {
     private lateinit var locality: EditText
     private lateinit var collector: EditText
     private lateinit var notes: EditText
+    private lateinit var locationText: TextView
+    private lateinit var removeLocationButton: View
+
+    /** Punto de colecta: latitud, longitud, altitud (o NaN) y precisión (o NaN). */
+    private var location: DoubleArray? = null
+    private var locationJob: Job? = null
 
     /** Espécimen que se edita, o null si es nuevo. */
     private var original: Specimen? = null
@@ -90,6 +98,10 @@ class SpecimenEditActivity : AppCompatActivity() {
         if (granted) launchCamera()
     }
 
+    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (SpecimenLocation.hasPermission(this)) captureLocation() else locationText.setText(R.string.location_no_permission)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -111,6 +123,10 @@ class SpecimenEditActivity : AppCompatActivity() {
         locality = findViewById(R.id.localityInput)
         collector = findViewById(R.id.collectorInput)
         notes = findViewById(R.id.notesInput)
+        locationText = findViewById(R.id.locationText)
+        removeLocationButton = findViewById(R.id.removeLocationButton)
+        findViewById<View>(R.id.refreshLocationButton).setOnClickListener { requestLocation() }
+        removeLocationButton.setOnClickListener { setLocation(null) }
 
         findViewById<View>(R.id.takePhotoButton).setOnClickListener { takePhotoWithPermission() }
         findViewById<View>(R.id.pickPhotoButton).setOnClickListener {
@@ -124,12 +140,15 @@ class SpecimenEditActivity : AppCompatActivity() {
         findViewById<View>(R.id.saveButton).setOnClickListener { save() }
 
         pendingCapture = savedInstanceState?.getString(STATE_PENDING_CAPTURE)
+        if (savedInstanceState != null) setLocation(savedInstanceState.getDoubleArray(STATE_LOCATION))
         val id = intent.getLongExtra(Destinations.EXTRA_SPECIMEN_ID, 0L)
         toolbar.setTitle(if (id == 0L) R.string.add_specimen else R.string.edit_specimen)
         if (id == 0L) {
             if (savedInstanceState == null) {
                 date.setText(today())
                 collector.setText(prefs().getString(KEY_LAST_COLLECTOR, ""))
+                // Espécimen nuevo: se toma el punto de colecta automáticamente.
+                requestLocation()
             }
             restorePhoto(savedInstanceState)
         } else {
@@ -137,7 +156,19 @@ class SpecimenEditActivity : AppCompatActivity() {
                 val specimen = SpecimenRepository.get(this@SpecimenEditActivity, id) ?: return@launch finish()
                 original = specimen
                 toolbar.subtitle = specimen.catalogCode
-                if (savedInstanceState == null) fill(specimen)
+                if (savedInstanceState == null) {
+                    fill(specimen)
+                    setLocation(
+                        if (specimen.latitude != null && specimen.longitude != null) {
+                            doubleArrayOf(
+                                specimen.latitude, specimen.longitude,
+                                specimen.altitude ?: Double.NaN, specimen.accuracy?.toDouble() ?: Double.NaN,
+                            )
+                        } else {
+                            null
+                        }
+                    )
+                }
                 restorePhoto(savedInstanceState)
             }
         }
@@ -147,6 +178,7 @@ class SpecimenEditActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putString(STATE_PHOTO, photo)
         outState.putString(STATE_PENDING_CAPTURE, pendingCapture)
+        outState.putDoubleArray(STATE_LOCATION, location)
     }
 
     override fun onDestroy() {
@@ -158,6 +190,54 @@ class SpecimenEditActivity : AppCompatActivity() {
     private fun restorePhoto(state: Bundle?) {
         photo = if (state != null) state.getString(STATE_PHOTO) else original?.photo
         showPhoto()
+    }
+
+    private fun requestLocation() {
+        if (SpecimenLocation.hasPermission(this)) captureLocation() else locationPermission.launch(SpecimenLocation.PERMISSIONS)
+    }
+
+    /** Toma el punto GPS y, si la localidad está vacía, la llena con el nombre del lugar. */
+    private fun captureLocation() {
+        locationJob?.cancel()
+        locationText.setText(R.string.location_searching)
+        locationJob = lifecycleScope.launch {
+            val fix = SpecimenLocation.current(this@SpecimenEditActivity)
+            if (fix == null) {
+                if (location == null) locationText.setText(R.string.location_failed)
+                else showLocation()
+                Toast.makeText(this@SpecimenEditActivity, R.string.location_failed, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            setLocation(
+                doubleArrayOf(
+                    fix.latitude, fix.longitude,
+                    if (fix.hasAltitude()) fix.altitude else Double.NaN,
+                    if (fix.hasAccuracy()) fix.accuracy.toDouble() else Double.NaN,
+                )
+            )
+            if (locality.text.isNullOrBlank()) {
+                SpecimenLocation.placeName(this@SpecimenEditActivity, fix.latitude, fix.longitude)
+                    ?.let { if (locality.text.isNullOrBlank()) locality.setText(it) }
+            }
+        }
+    }
+
+    private fun setLocation(value: DoubleArray?) {
+        if (value == null) locationJob?.cancel()
+        location = value
+        showLocation()
+    }
+
+    private fun showLocation() {
+        val value = location
+        if (value == null) {
+            locationText.setText(R.string.location_none)
+        } else {
+            locationText.text = SpecimenLocation.describe(
+                value[0], value[1], value[2].takeUnless { it.isNaN() }, value[3].takeUnless { it.isNaN() }?.toFloat()
+            )
+        }
+        removeLocationButton.visibility = if (value == null) View.GONE else View.VISIBLE
     }
 
     /** Busca sugerencias medio segundo después de que el usuario deja de escribir. */
@@ -172,13 +252,14 @@ class SpecimenEditActivity : AppCompatActivity() {
             delay(400)
             commonLayout.helperText = getString(R.string.searching_suggestions)
             try {
-                val result = INaturalist.suggest(text.trim(), locality.text.toString())
+                val point = location
+                val result = INaturalist.suggest(text.trim(), locality.text.toString(), point?.get(0), point?.get(1))
                 suggestions.submit(result.suggestions)
                 commonLayout.helperText = when {
                     result.suggestions.isEmpty() -> getString(R.string.no_suggestions)
-                    result.place != null && result.suggestions.any { it.nearbyObservations != null } ->
-                        getString(R.string.suggestions_near, result.place.name)
-                    else -> getString(R.string.suggestions_global)
+                    !result.searchedNearby -> getString(R.string.suggestions_global)
+                    result.area != null -> getString(R.string.suggestions_near, result.area)
+                    else -> getString(R.string.suggestions_near_point, INaturalist.RADIUS_KM)
                 }
                 if (result.suggestions.isNotEmpty() && common.hasFocus()) common.showDropDown()
             } catch (e: CancellationException) {
@@ -292,6 +373,10 @@ class SpecimenEditActivity : AppCompatActivity() {
             collector = collector.text.toString().trim(),
             notes = notes.text.toString().trim(),
             photo = photo,
+            latitude = location?.get(0),
+            longitude = location?.get(1),
+            altitude = location?.get(2)?.takeUnless { it.isNaN() },
+            accuracy = location?.get(3)?.takeUnless { it.isNaN() }?.toFloat(),
         )
         lifecycleScope.launch {
             SpecimenRepository.save(this@SpecimenEditActivity, specimen)

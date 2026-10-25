@@ -12,11 +12,13 @@ import java.util.Locale
 
 /**
  * Sugerencias de especies con la API pública de iNaturalist (sin cuenta). Busca primero las
- * especies observadas en el lugar de la localidad y, si hay pocas, completa con resultados globales.
+ * especies observadas cerca del punto GPS (o en el lugar de la localidad si no hay GPS) y, si
+ * hay pocas, completa con resultados globales.
  */
 object INaturalist {
     private const val API = "https://api.inaturalist.org/v1"
     private const val MAX_SUGGESTIONS = 10
+    const val RADIUS_KM = 30
 
     data class Place(val id: Long, val name: String)
 
@@ -29,17 +31,29 @@ object INaturalist {
         val nearbyObservations: Int?,
     )
 
-    data class Result(val place: Place?, val suggestions: List<Suggestion>)
+    /** [area] describe dónde se buscó: el nombre del lugar, o null si se usó el punto GPS. */
+    data class Result(val searchedNearby: Boolean, val area: String?, val suggestions: List<Suggestion>)
 
     private val placeCache = mutableMapOf<String, Place?>()
 
-    suspend fun suggest(name: String, locality: String): Result = withContext(Dispatchers.IO) {
-        val place = resolvePlace(locality)
-        val local = if (place != null) nearby(name, place.id) else emptyList()
-        val global = if (local.size < 3) global(name, place?.id) else emptyList()
-        val seen = local.map { it.taxonId }.toSet()
-        Result(place, (local + global.filter { it.taxonId !in seen }).take(MAX_SUGGESTIONS))
-    }
+    suspend fun suggest(name: String, locality: String, latitude: Double?, longitude: Double?): Result =
+        withContext(Dispatchers.IO) {
+            val usePoint = latitude != null && longitude != null
+            val place = if (usePoint) null else resolvePlace(locality)
+            val area = when {
+                usePoint -> "&lat=$latitude&lng=$longitude&radius=$RADIUS_KM"
+                place != null -> "&place_id=${place.id}"
+                else -> null
+            }
+            val local = if (area != null) nearby(name, area) else emptyList()
+            val global = if (local.size < 3) global(name, place?.id) else emptyList()
+            val seen = local.map { it.taxonId }.toSet()
+            Result(
+                searchedNearby = local.isNotEmpty(),
+                area = place?.name,
+                suggestions = (local + global.filter { it.taxonId !in seen }).take(MAX_SUGGESTIONS),
+            )
+        }
 
     /** Grupo taxonómico para la colección: el orden si existe, si no la clase o el reino. */
     suspend fun group(taxonId: Long): String? = withContext(Dispatchers.IO) {
@@ -70,10 +84,10 @@ object INaturalist {
         return place
     }
 
-    private fun nearby(name: String, placeId: Long): List<Suggestion> {
+    /** [area] son los parámetros de zona: "&place_id=…" o "&lat=…&lng=…&radius=…". */
+    private fun nearby(name: String, area: String): List<Suggestion> {
         val json = get(
-            "/observations/species_counts?q=${encode(name)}&search_on=names&place_id=$placeId" +
-                "&locale=es&preferred_place_id=$placeId&per_page=$MAX_SUGGESTIONS"
+            "/observations/species_counts?q=${encode(name)}&search_on=names$area&locale=es&per_page=$MAX_SUGGESTIONS"
         )
         val results = json.getJSONArray("results")
         return (0 until results.length()).mapNotNull { i ->

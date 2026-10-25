@@ -47,6 +47,59 @@
                 android:textAppearance="?attr/textAppearanceTitleMedium" />
 
             <LinearLayout
+                android:id="@+id/locationSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/field_location"
+                    android:textAppearance="?attr/textAppearanceLabelMedium" />
+
+                <TextView
+                    android:id="@+id/locationText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textIsSelectable="true" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Material3.CardView.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp">
+
+                    <org.osmdroid.views.MapView
+                        android:id="@+id/map"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:background="#AAFFFFFF"
+                        android:paddingHorizontal="4dp"
+                        android:text="@string/map_attribution"
+                        android:textColor="#333333"
+                        android:textSize="10sp" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/openInMapsButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="@string/open_in_maps"
+                    app:icon="@drawable/ic_map" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/fields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

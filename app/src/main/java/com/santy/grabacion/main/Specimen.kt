@@ -24,7 +24,16 @@ data class Specimen(
     val notes: String = "",
     /** Nombre del archivo de la foto dentro de [SpecimenPhotos.dir], o null. */
     val photo: String? = null,
-)
+    /** Coordenadas WGS84 del punto de colecta, si se tomaron. */
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    /** Altitud en metros sobre el nivel del mar, si el GPS la dio. */
+    val altitude: Double? = null,
+    /** Precisión horizontal en metros. */
+    val accuracy: Float? = null,
+) {
+    val hasLocation: Boolean get() = latitude != null && longitude != null
+}
 
 /** Código de catálogo: 3 letras del grupo sin tildes (Coleoptera → COL) o IND si no hay grupo. */
 object CatalogCode {
@@ -63,7 +72,7 @@ object CatalogCode {
 
 /** Base de datos local de la colección (archivo coleccion.db en el almacenamiento privado). */
 private class SpecimenDatabase(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "coleccion.db", null, 2) {
+    SQLiteOpenHelper(context.applicationContext, "coleccion.db", null, 3) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -79,6 +88,10 @@ private class SpecimenDatabase(context: Context) :
                 collector TEXT NOT NULL DEFAULT '',
                 notes TEXT NOT NULL DEFAULT '',
                 photo TEXT,
+                latitude REAL,
+                longitude REAL,
+                altitude REAL,
+                accuracy REAL,
                 created_at INTEGER NOT NULL
             )
             """.trimIndent()
@@ -96,6 +109,11 @@ private class SpecimenDatabase(context: Context) :
                     val code = CatalogCode.next(db, CatalogCode.prefixFor(cursor.getString(1)))
                     db.execSQL("UPDATE specimens SET catalog_code = ? WHERE _id = ?", arrayOf(code, cursor.getLong(0)))
                 }
+            }
+        }
+        if (oldVersion < 3) {
+            for (column in listOf("latitude", "longitude", "altitude", "accuracy")) {
+                db.execSQL("ALTER TABLE specimens ADD COLUMN $column REAL")
             }
         }
     }
@@ -147,6 +165,10 @@ object SpecimenRepository {
             put("collector", specimen.collector)
             put("notes", specimen.notes)
             put("photo", specimen.photo)
+            put("latitude", specimen.latitude)
+            put("longitude", specimen.longitude)
+            put("altitude", specimen.altitude)
+            put("accuracy", specimen.accuracy)
         }
         db.beginTransaction()
         try {
@@ -184,5 +206,14 @@ object SpecimenRepository {
         collector = getString(getColumnIndexOrThrow("collector")),
         notes = getString(getColumnIndexOrThrow("notes")),
         photo = getString(getColumnIndexOrThrow("photo")),
+        latitude = getDoubleOrNull("latitude"),
+        longitude = getDoubleOrNull("longitude"),
+        altitude = getDoubleOrNull("altitude"),
+        accuracy = getDoubleOrNull("accuracy")?.toFloat(),
     )
+
+    private fun Cursor.getDoubleOrNull(column: String): Double? {
+        val index = getColumnIndexOrThrow(column)
+        return if (isNull(index)) null else getDouble(index)
+    }
 }

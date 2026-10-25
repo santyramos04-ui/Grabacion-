@@ -8,7 +8,12 @@ App Android con dos módulos:
   (cámara o galería), fecha, localidad, colector y notas; se pueden buscar, editar y
   eliminar. Al escribir el nombre común, el formulario sugiere especies de
   [iNaturalist](https://www.inaturalist.org) observadas en la localidad y rellena el nombre
-  científico y el grupo. Las fotos se guardan en el almacenamiento privado de la app,
+  científico y el grupo.
+  Al añadir un espécimen se toma automáticamente el punto GPS (coordenadas, altitud y
+  precisión) y, si la localidad está vacía, se llena con el nombre del lugar. Con GPS, las
+  sugerencias buscan especies observadas a menos de 30 km. La ficha muestra el punto en un
+  mapa de [OpenStreetMap](https://www.openstreetmap.org) y el menú de la colección tiene un
+  mapa con todos los especímenes. Las fotos se guardan en el almacenamiento privado de la app,
   fuera de la galería del teléfono.
 - **Vault**: la app de cámara en segundo plano descrita abajo, sin cambios en su
   funcionamiento. Se entra con un gesto discreto y se sale con *Cerrar vault* en su menú.
