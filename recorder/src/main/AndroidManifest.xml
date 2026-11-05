@@ -17,5 +17,25 @@
             android:name="com.santy.grabacion.recorder.CameraService"
             android:exported="false"
             android:foregroundServiceType="camera|microphone" />
+
+        <!-- Pantalla invisible para iniciar la grabación desde el botón de Ajustes rápidos. -->
+        <activity
+            android:name="com.santy.grabacion.recorder.RecorderLaunchActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Botón de Ajustes rápidos: empezar o detener la grabación. -->
+        <service
+            android:name="com.santy.grabacion.recorder.RecorderTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_record"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

@@ -31,8 +31,10 @@ App Android con dos módulos:
 - **Vault**: la app de cámara en segundo plano descrita abajo. Se entra con **5 toques
   rápidos en Colección → Ajustes** y se sale con *Cerrar vault*. Al abrir la app desde el
   escritorio siempre empieza en Colección.
-- **5 toques rápidos en la pantalla principal de la Colección** inician el video en segundo
-  plano con los ajustes del vault, sin entrar al vault.
+- Para **grabar sin abrir el vault**, con los ajustes guardados en él:
+  - **5 toques rápidos** o **mantener pulsado un segundo** la pantalla principal de la Colección.
+  - El **botón de Ajustes rápidos** «Procesar» (se añade una vez desde el panel que se baja
+    desde arriba → editar los controles). Empieza o detiene, y muestra si está activo.
 
 Estructura del código: módulos `core`, `recorder`, `vault`, `collection` y `app`. Ver
 [ARCHITECTURE.md](ARCHITECTURE.md).

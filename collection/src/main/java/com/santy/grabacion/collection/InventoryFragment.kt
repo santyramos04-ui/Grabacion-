@@ -42,12 +42,19 @@ class InventoryFragment : CollectionTab(R.layout.fragment_inventory) {
     private val exporter = ExportController(this, { filtered(SpecimenRepository.all(requireContext(), searchQuery)) })
     private val recordingTrigger = CollectionRecordingTrigger(this)
 
-    /** Cinco toques rápidos en la misma zona de esta pantalla inician la grabación en segundo plano. */
+    /**
+     * Gestos ocultos de esta pantalla para iniciar la grabación en segundo plano: cinco toques
+     * rápidos en la misma zona, o mantener pulsado un segundo sin mover.
+     */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val content = super.onCreateView(inflater, container, savedInstanceState)!!
         return TapSequenceLayout(requireContext()).apply {
             addView(content)
-            detector = TapSequenceDetector(requireContext()) { recordingTrigger.onSequence() }
+            detector = TapSequenceDetector(
+                requireContext(),
+                longHoldMs = 1_000,
+                onLongHold = { recordingTrigger.onSequence() },
+            ) { recordingTrigger.onSequence() }
         }
     }
 

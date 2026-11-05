@@ -11,4 +11,8 @@
         <item quantity="one">%d foto</item>
         <item quantity="other">%d fotos</item>
     </plurals>
+    <string name="tile_label">Procesar</string>
+    <string name="tile_on">Procesando</string>
+    <string name="tile_off">Toca para empezar</string>
+    <string name="recorder_need_camera">Se necesita el permiso de cámara para grabar.</string>
 </resources>
