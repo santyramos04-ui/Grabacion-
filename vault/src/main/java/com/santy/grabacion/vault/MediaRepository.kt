@@ -6,6 +6,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -14,6 +15,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.santy.grabacion.core.PrivateMedia
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -24,14 +26,42 @@ data class VideoInfo(val uri: Uri, val name: String, val durationMs: Long)
 
 data class PhotoInfo(val uri: Uri, val name: String)
 
-/** Una carpeta Pictures/Owl/TL_... con las fotos de un timelapse. */
+/** Una carpeta TL_... con las fotos de un timelapse. */
 data class TimelapseSession(val path: String, val title: String, val cover: Uri, val count: Int)
 
+/**
+ * Videos y timelapses del vault. Lo nuevo se guarda en el espacio privado de OWL (PrivateMedia),
+ * que la galería del teléfono no muestra. Lo que grabaste con versiones anteriores seguía en la
+ * galería (Movies/Owl, Pictures/Owl): también se lista aquí para que no desaparezca.
+ */
 object MediaRepository {
     const val VIDEO_DIR = "Movies/Owl/"
     const val PHOTO_DIR = "Pictures/Owl/"
 
+    // ---- Videos --------------------------------------------------------------------------------
+
     suspend fun videos(context: Context): List<VideoInfo> = withContext(Dispatchers.IO) {
+        val private = PrivateMedia.videosDir(context).listFiles { f -> f.isFile && f.extension == "mp4" }
+            ?.sortedByDescending { it.lastModified() }
+            ?.map { VideoInfo(PrivateMedia.uriFor(context, it), it.name, videoDuration(it)) }
+            ?: emptyList()
+        private + legacyVideos(context)
+    }
+
+    private fun videoDuration(file: File): Long {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.absolutePath)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+        } catch (e: Exception) {
+            0L
+        } finally {
+            retriever.release()
+        }
+    }
+
+    /** Videos que quedaron en la galería del teléfono con versiones anteriores de la app. */
+    private fun legacyVideos(context: Context): List<VideoInfo> {
         val result = mutableListOf<VideoInfo>()
         val collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         context.contentResolver.query(
@@ -52,10 +82,24 @@ object MediaRepository {
                 )
             }
         }
-        result
+        return result
     }
 
+    // ---- Timelapses ----------------------------------------------------------------------------
+
     suspend fun sessions(context: Context): List<TimelapseSession> = withContext(Dispatchers.IO) {
+        val private = PrivateMedia.timelapseDir(context).listFiles { f -> f.isDirectory }
+            ?.sortedByDescending { it.name }
+            ?.mapNotNull { dir ->
+                val photos = dir.listFiles { f -> f.isFile && f.extension == "jpg" }?.sortedBy { it.name }
+                if (photos.isNullOrEmpty()) null
+                else TimelapseSession(dir.absolutePath, sessionTitle(dir.name), PrivateMedia.uriFor(context, photos.first()), photos.size)
+            }
+            ?: emptyList()
+        private + legacySessions(context)
+    }
+
+    private fun legacySessions(context: Context): List<TimelapseSession> {
         val collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val groups = LinkedHashMap<String, MutableList<Uri>>()
         context.contentResolver.query(
@@ -72,10 +116,18 @@ object MediaRepository {
                     ContentUris.withAppendedId(collection, c.getLong(id))
             }
         }
-        groups.map { (path, uris) -> TimelapseSession(path, sessionTitle(path), uris.first(), uris.size) }
+        return groups.map { (path, uris) -> TimelapseSession(path, sessionTitle(path), uris.first(), uris.size) }
     }
 
     suspend fun sessionPhotos(context: Context, path: String): List<PhotoInfo> = withContext(Dispatchers.IO) {
+        val dir = File(path)
+        if (dir.isDirectory) {
+            return@withContext dir.listFiles { f -> f.isFile && f.extension == "jpg" }
+                ?.sortedBy { it.name }
+                ?.map { PhotoInfo(PrivateMedia.uriFor(context, it), it.name) }
+                ?: emptyList()
+        }
+        // Timelapse heredado en la galería.
         val result = mutableListOf<PhotoInfo>()
         val collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         context.contentResolver.query(
@@ -94,7 +146,7 @@ object MediaRepository {
         result
     }
 
-    /** Convierte "Pictures/Owl/TL_20261024_173000_123/" en "24/10/2026 17:30". */
+    /** De "TL_20261024_173000_123" o ".../Owl/TL_.../" a "24/10/2026 17:30". */
     fun sessionTitle(path: String): String {
         val folder = path.trimEnd('/').substringAfterLast('/')
         return try {
@@ -105,8 +157,20 @@ object MediaRepository {
         }
     }
 
-    /** Copia un video exportado a la galería (Movies/Owl) y borra el temporal. */
+    // ---- Guardar y exportar --------------------------------------------------------------------
+
+    /** Mueve un video exportado (edición o timelapse) al espacio privado y devuelve su URI. */
     suspend fun saveVideo(context: Context, file: File, displayName: String): Uri = withContext(Dispatchers.IO) {
+        val target = File(PrivateMedia.videosDir(context), displayName)
+        if (!file.renameTo(target)) {
+            file.inputStream().use { input -> target.outputStream().use { input.copyTo(it) } }
+            file.delete()
+        }
+        PrivateMedia.uriFor(context, target)
+    }
+
+    /** Copia un video del espacio privado a la galería del teléfono (Movies/Owl), a petición. */
+    suspend fun exportToGallery(context: Context, uri: Uri, displayName: String): Boolean = withContext(Dispatchers.IO) {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
@@ -114,14 +178,14 @@ object MediaRepository {
             put(MediaStore.MediaColumns.RELATIVE_PATH, VIDEO_DIR)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
-        val uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
-            ?: error("No se pudo crear el archivo en la galería")
-        resolver.openOutputStream(uri)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
+        val target = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
+        resolver.openOutputStream(target)!!.use { out ->
+            resolver.openInputStream(uri)!!.use { it.copyTo(out) }
+        }
         values.clear()
         values.put(MediaStore.MediaColumns.IS_PENDING, 0)
-        resolver.update(uri, values, null, null)
-        file.delete()
-        uri
+        resolver.update(target, values, null, null)
+        true
     }
 
     fun share(context: Context, uris: List<Uri>, mimeType: String) {
@@ -138,8 +202,8 @@ object MediaRepository {
 }
 
 /**
- * Borra archivos de la galería. En Android 11+ el sistema muestra su propia confirmación;
- * en Android 10 se pide confirmación en la app.
+ * Borra archivos. Los del espacio privado de OWL se borran directamente (con una confirmación en
+ * la app); los que quedaron en la galería usan la confirmación del sistema (Android 11+).
  */
 class MediaDeleter(private val activity: ComponentActivity, private val onDeleted: () -> Unit) {
     private var pending: List<Uri> = emptyList()
@@ -152,7 +216,13 @@ class MediaDeleter(private val activity: ComponentActivity, private val onDelete
     fun delete(uris: List<Uri>, confirmMessage: String) {
         if (uris.isEmpty()) return
         pending = uris
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (uris.all { PrivateMedia.isPrivate(activity, it) }) {
+            MaterialAlertDialogBuilder(activity)
+                .setMessage(confirmMessage)
+                .setPositiveButton(R.string.action_delete) { _, _ -> deletePrivate(uris) }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val request = MediaStore.createDeleteRequest(activity.contentResolver, uris)
             launcher.launch(IntentSenderRequest.Builder(request.intentSender).build())
         } else {
@@ -162,6 +232,19 @@ class MediaDeleter(private val activity: ComponentActivity, private val onDelete
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+    }
+
+    private fun deletePrivate(uris: List<Uri>) {
+        val dirs = mutableSetOf<File>()
+        uris.forEach { uri ->
+            PrivateMedia.fileFor(activity, uri)?.let { file ->
+                file.parentFile?.let { dirs += it }
+                file.delete()
+            }
+        }
+        // Borra la carpeta del timelapse si quedó vacía.
+        dirs.forEach { if (it.listFiles()?.isEmpty() != false) it.delete() }
+        done()
     }
 
     private fun deleteDirectly(uris: List<Uri>) {

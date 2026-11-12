@@ -67,9 +67,13 @@ El vault tiene tres pestañas abajo:
   - Revisar actualizaciones automáticamente al abrir.
   - Atajo para desactivar la optimización de batería.
 
-Archivos en la galería del teléfono:
-- Videos (grabados y editados): `Movies/Owl`
-- Fotos: `Pictures/Owl/TL_<fecha>` (una carpeta por sesión)
+Dónde se guardan:
+- Los videos y las fotos de timelapse nuevos van a un **espacio privado de OWL** que la galería
+  del teléfono no muestra; solo se ven y reproducen dentro del vault. Al desinstalar la app ese
+  espacio se borra con ella, y no entra en las copias de seguridad. Desde el reproductor,
+  «Guardar copia en la galería» saca una copia a `Movies/Owl` cuando se quiere.
+- Lo grabado con versiones anteriores sigue en la galería (`Movies/Owl`, `Pictures/Owl/TL_<fecha>`)
+  y el vault lo sigue mostrando.
 
 ## Instalar
 

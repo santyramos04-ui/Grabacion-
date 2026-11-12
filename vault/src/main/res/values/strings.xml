@@ -39,7 +39,10 @@
     <string name="rotation_value">Rotación: %d°</string>
     <string name="save_copy">Guardar como copia</string>
     <string name="exporting">Exportando… %d%%</string>
-    <string name="export_done">Guardado en Movies/Owl</string>
+    <string name="export_done">Guardado en el espacio privado de OWL</string>
+    <string name="export_to_gallery">Guardar copia en la galería</string>
+    <string name="export_to_gallery_done">Copia guardada en la galería (Movies/Owl)</string>
+    <string name="export_failed_short">No se pudo guardar la copia</string>
     <string name="make_video_title">Crear video del timelapse</string>
     <string name="fps_label">Fotos por segundo: %d</string>
     <string name="make_video_summary">%1$d fotos → video de %2$.1f s</string>

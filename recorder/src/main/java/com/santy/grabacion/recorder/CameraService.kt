@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,7 +13,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
 import android.widget.Toast
@@ -24,7 +22,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
-import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
@@ -34,6 +32,8 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.santy.grabacion.core.PrivateMedia
+import java.io.File
 import androidx.lifecycle.LifecycleService
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,8 +63,6 @@ class CameraService : LifecycleService() {
         internal const val EXTRA_INTERVAL = "interval"
         internal const val EXTRA_MAX_PHOTOS = "max_photos"
 
-        private const val VIDEO_FOLDER = "Movies/Owl"
-        private const val PHOTO_FOLDER = "Pictures/Owl"
 
         private val _status = MutableStateFlow<CaptureStatus>(CaptureStatus.Idle)
         val status: StateFlow<CaptureStatus> = _status
@@ -82,7 +80,7 @@ class CameraService : LifecycleService() {
     private var intervalSeconds = 5
     private var maxPhotos = 0
     private var photoCount = 0
-    private var sessionFolder = ""
+    private var sessionDir: File? = null
 
     private val timelapseTick = object : Runnable {
         override fun run() {
@@ -193,14 +191,8 @@ class CameraService : LifecycleService() {
             camera.cameraControl.enableTorch(true)
         }
 
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "VID_${timestamp()}")
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, VIDEO_FOLDER)
-        }
-        val output = MediaStoreOutputOptions.Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-            .setContentValues(values)
-            .build()
+        val file = File(PrivateMedia.videosDir(this), "VID_${timestamp()}.mp4")
+        val output = FileOutputOptions.Builder(file).build()
 
         var pending = videoCapture.output.prepareRecording(this, output)
         if (audio) pending = pending.withAudioEnabled()
@@ -233,7 +225,7 @@ class CameraService : LifecycleService() {
                     Log.e(TAG, "Error de grabación: ${event.error}", event.cause)
                     notifyUser("La grabación terminó con error (${event.error})")
                 } else {
-                    notifyUser("Video guardado en $VIDEO_FOLDER")
+                    notifyUser("Video guardado en el espacio privado de OWL")
                 }
                 endSession()
             }
@@ -247,20 +239,15 @@ class CameraService : LifecycleService() {
             .build()
         provider.bindToLifecycle(this, selector, capture)
         imageCapture = capture
-        sessionFolder = "$PHOTO_FOLDER/TL_${timestamp()}"
+        sessionDir = File(PrivateMedia.timelapseDir(this), "TL_${timestamp()}").apply { mkdirs() }
         handler.post(timelapseTick)
     }
 
     private fun takeTimelapsePhoto() {
         val capture = imageCapture ?: return
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${timestamp()}")
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, sessionFolder)
-        }
-        val options = ImageCapture.OutputFileOptions.Builder(
-            contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
-        ).build()
+        val dir = sessionDir ?: return
+        val file = File(dir, "IMG_${timestamp()}.jpg")
+        val options = ImageCapture.OutputFileOptions.Builder(file).build()
         capture.takePicture(options, ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                 if (imageCapture == null) return
@@ -309,7 +296,7 @@ class CameraService : LifecycleService() {
             // endSession() se llama cuando llega el evento Finalize y el archivo queda cerrado.
             active.stop()
         } else {
-            if (imageCapture != null && photoCount > 0) notifyUser("$photoCount fotos guardadas en $sessionFolder")
+            if (imageCapture != null && photoCount > 0) notifyUser("$photoCount fotos guardadas en el espacio privado de OWL")
             endSession()
         }
     }
