@@ -73,6 +73,8 @@ class CameraService : LifecycleService() {
     private var recording: Recording? = null
     private var imageCapture: ImageCapture? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    // Detiene la grabación con una ráfaga de 3 pulsaciones de volumen en 2 s.
+    private val volumeStop by lazy { VolumeStopDetector(this) { stopCapture() } }
 
     private var origin = CaptureOrigin.VAULT
     private var settings = RecordingSettings()
@@ -197,6 +199,7 @@ class CameraService : LifecycleService() {
         var pending = videoCapture.output.prepareRecording(this, output)
         if (audio) pending = pending.withAudioEnabled()
         recording = pending.start(ContextCompat.getMainExecutor(this)) { event -> onVideoEvent(event) }
+        volumeStop.start()
     }
 
     /** El estado (pausa, tiempo grabado, fin) se toma de los eventos que confirma CameraX. */
@@ -241,6 +244,7 @@ class CameraService : LifecycleService() {
         imageCapture = capture
         sessionDir = File(PrivateMedia.timelapseDir(this), "TL_${timestamp()}").apply { mkdirs() }
         handler.post(timelapseTick)
+        volumeStop.start()
     }
 
     private fun takeTimelapsePhoto() {
@@ -307,6 +311,7 @@ class CameraService : LifecycleService() {
     }
 
     private fun endSession() {
+        volumeStop.stop()
         handler.removeCallbacks(timelapseTick)
         imageCapture = null
         cameraProvider?.unbindAll()
@@ -318,6 +323,7 @@ class CameraService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        volumeStop.stop()
         recording?.close()
         recording = null
         handler.removeCallbacks(timelapseTick)

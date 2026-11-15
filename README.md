@@ -56,6 +56,10 @@ El vault tiene tres pestañas abajo:
   - Timelapse: una foto cada N segundos, con límite opcional de fotos.
   - Cámara trasera o frontal, vista previa para encuadrar.
   - Notificación discreta «Procesando» con botones **Pausar/Reanudar** y **Finalizar**.
+  - **Detener con el volumen:** 3 pulsaciones rápidas del botón de volumen (en 2 s) detienen
+    la grabación, incluso en segundo plano o con la pantalla apagada. Vigila los cambios de
+    volumen del sistema, así que el patrón mueve el volumen; si ya está al máximo o al mínimo,
+    esa dirección no cuenta.
 - **Galería**
   - *Videos*: reproduce, edita, comparte o elimina lo que grabaste.
   - *Timelapses*: cada sesión de fotos; ábrela para ver las fotos, compartirlas,
