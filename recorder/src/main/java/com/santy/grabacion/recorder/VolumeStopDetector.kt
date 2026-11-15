@@ -1,18 +1,25 @@
 package com.santy.grabacion.recorder
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 
 /**
- * Detiene la grabación con una ráfaga rápida del botón de volumen, aun en segundo plano y con la
- * pantalla apagada. No lee las teclas (Android no lo permite sin permisos especiales): vigila los
- * cambios de volumen del sistema mientras el servicio está activo. Por eso el patrón mueve el
- * volumen de verdad, y una pulsación que no cambia el nivel (volumen ya al máximo o al mínimo en
+ * Detiene la grabación con una ráfaga rápida del botón de volumen, con la app abierta, en segundo
+ * plano o cerrada, mientras haya una captura en curso. Con la pantalla apagada muchos teléfonos
+ * ignoran el botón de volumen si no suena nada, y entonces no hay cambio que detectar.
+ *
+ * No lee las teclas (Android no lo permite sin permisos especiales): vigila los cambios de
+ * volumen del sistema mientras el servicio está activo. Por eso el patrón mueve el volumen de
+ * verdad, y una pulsación que no cambia el nivel (volumen ya al máximo o al mínimo en
  * esa dirección) no cuenta.
  *
  * Cuando ocurren [requiredChanges] cambios dentro de [windowMs] ms, llama a [onPattern].
@@ -40,8 +47,17 @@ class VolumeStopDetector(
     private val changeTimes = ArrayDeque<Long>()
     private var registered = false
 
+    // Respaldo: algunos sistemas guardan el volumen en Settings con retraso o agrupando cambios.
     private val observer = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
+            if (snapshotChanged()) registerChange()
+        }
+    }
+
+    // Aviso inmediato que Android envía en cada cambio de volumen. Ambos caminos pasan por
+    // snapshotChanged(), así que un mismo cambio nunca se cuenta dos veces.
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
             if (snapshotChanged()) registerChange()
         }
     }
@@ -51,12 +67,16 @@ class VolumeStopDetector(
         snapshotChanged() // guarda los niveles actuales como referencia
         changeTimes.clear()
         appContext.contentResolver.registerContentObserver(Settings.System.CONTENT_URI, true, observer)
+        ContextCompat.registerReceiver(
+            appContext, receiver, IntentFilter(VOLUME_CHANGED_ACTION), ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         registered = true
     }
 
     fun stop() {
         if (!registered) return
         appContext.contentResolver.unregisterContentObserver(observer)
+        appContext.unregisterReceiver(receiver)
         registered = false
     }
 
@@ -86,5 +106,10 @@ class VolumeStopDetector(
             changeTimes.clear()
             onPattern()
         }
+    }
+
+    private companion object {
+        /** Difusión del sistema en cada cambio de volumen (no forma parte del SDK público). */
+        const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
     }
 }
